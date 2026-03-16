@@ -1,0 +1,21 @@
+{
+  "name": "sheet-redactor",
+  "version": "1.0.0",
+  "description": "Утилита для объединения XLSX таблиц",
+  "type": "commonjs",
+  "main": "main.js",
+  "bin": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "build": "pkg main.js --targets node18-win-x64 --output dist/sheet-redactor.exe",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.23.0",
+  "dependencies": {
+    "pkg": "^5.8.1",
+    "xlsx": "^0.18.5"
+  }
+}
