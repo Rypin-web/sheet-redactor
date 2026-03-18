@@ -162,18 +162,6 @@ function extractData(rows, dateIndex, titleIndex, valueIndex) {
 
     return result;
 }
-
-/**
- * Получить данные для отображения в меню выбора столбца
- * Фильтрует дубликаты заголовков
- * @param {string[]} headers - Массив заголовков
- * @returns {string[]} Уникальные заголовки для отображения
- */
-function getDisplayHeaders(headers) {
-    // Возвращаем заголовки с их индексами для удобства
-    return headers.map((h, i) => `[${i + 1}] ${h}`);
-}
-
 /**
  * Получить все уникальные даты из данных
  * @param {Array<{date: string, title: string, value: any}>} data - Массив записей
@@ -195,6 +183,5 @@ module.exports = {
     findDateColumnIndex,
     parseDate,
     extractData,
-    getDisplayHeaders,
     getUniqueDates
 };

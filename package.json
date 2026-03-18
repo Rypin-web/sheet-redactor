@@ -7,15 +7,28 @@
   "bin": "main.js",
   "scripts": {
     "start": "node main.js",
-    "build": "pkg main.js --targets node18-win-x64 --output dist/sheet-redactor.exe",
+    "build": "pkg main.js --targets node18-win-x64 --output dist/sheet-redactor.exe --compress GZip",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["xlsx", "excel", "csv", "merge", "spreadsheet", "таблицы", "данные"],
+  "author": {
+    "name": "rypin-web",
+    "email": "hhgfcswd@gmai.com",
+    "url": "https://github.com/rypin-web"
+  },
+  "license": "MIT",
   "packageManager": "pnpm@10.23.0",
   "dependencies": {
     "pkg": "^5.8.1",
     "xlsx": "^0.18.5"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/xlsx/**/*.js"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
   }
 }

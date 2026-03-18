@@ -1,6 +1,6 @@
 /**
  * Модуль пользовательского ввода
- * Отвечает за: вывод меню, запрос чисел с валидацией
+ * Отвечает за: вывод меню, запрос чисел с валидацией, обработка возврата назад
  */
 
 const readline = require('readline');
@@ -16,57 +16,44 @@ function createInterface() {
 }
 
 /**
+ * Проверить, является ли ввод командой возврата назад
+ * @param {string} input - Ввод пользователя
+ * @returns {boolean} true если это команда возврата
+ */
+function isGoBack(input) {
+    if (!input) return false;
+    const trimmed = input.trim().toLowerCase();
+    return trimmed === 'r' || trimmed === 'к';
+}
+
+/**
  * Вывести нумерованный список и получить выбор пользователя
  * @param {string[]} items - Массив элементов для вывода
  * @param {string} question - Текст вопроса
- * @returns {Promise<number>} Индекс выбранного элемента (0-based)
+ * @returns {Promise<number|string>} Индекс выбранного элемента (1-based) или 'back' если пользователь ввёл r/к
  */
 async function displayMenu(items, question) {
     const rl = createInterface();
-    
+
     console.log('');
     items.forEach((item, index) => {
         console.log(`${index + 1}) ${item}`);
     });
     console.log('');
-    
+
     return new Promise((resolve) => {
         rl.question(question + ' ', (answer) => {
             rl.close();
+            
+            // Проверяем на команду возврата
+            if (isGoBack(answer)) {
+                resolve('back');
+                return;
+            }
+            
             const num = parseInt(answer, 10);
             resolve(num);
         });
-    });
-}
-
-/**
- * Запросить число с валидацией диапазона
- * Повторяет вопрос при неверном вводе
- * @param {number} max - Максимальное допустимое значение
- * @param {number} min - Минимальное допустимое значение (по умолчанию 1)
- * @param {string} question - Текст вопроса
- * @returns {Promise<number>} Валидное число
- */
-async function askNumber(max, question, min = 1) {
-    const rl = createInterface();
-    
-    return new Promise((resolve) => {
-        const ask = () => {
-            rl.question(`${question} (от ${min} до ${max}): `, (answer) => {
-                const num = parseInt(answer, 10);
-                
-                if (isNaN(num) || num < min || num > max) {
-                    console.log(`ERROR: Неверный ввод. Введите число от ${min} до ${max}`);
-                    ask(); // Повторный запрос
-                    return;
-                }
-                
-                rl.close();
-                resolve(num);
-            });
-        };
-        
-        ask();
     });
 }
 
@@ -97,7 +84,7 @@ async function showErrorAndWait(message) {
 
 module.exports = {
     displayMenu,
-    askNumber,
+    isGoBack,
     waitForEnter,
     showErrorAndWait
 };

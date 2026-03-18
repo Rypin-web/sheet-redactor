@@ -1,48 +1,32 @@
 /**
- * Sheet Redactor - Утилита для объединения CSV таблиц
+ * Sheet Redactor - Утилита для объединения XLSX таблиц
  * Точка входа приложения
  */
 
-const XLSX = require('xlsx');
-const fs = require('./modules/filesystem');
-const parser = require('./modules/parser');
-const merger = require('./modules/merger');
-const calculator = require('./modules/calculator');
-const prompts = require('./utils/prompts');
-const oldDataScenario = require('./scenarios/old-data');
-const newDataScenario = require('./scenarios/new-data');
+const state = require('./utils/state');
+const flow = require('./utils/flow');
+const { scenario1 } = require('./scenarios/execute-scenario1');
+const { scenario2 } = require('./scenarios/execute-scenario2');
+const { scenario3 } = require('./scenarios/execute-scenario3');
+const { scenario4 } = require('./scenarios/execute-scenario4');
 
+// Инициализируем state
+state.initState();
+
+// Массив всех сценариев
+const allScenarios = [
+    scenario1,  // Индекс 0: Сценарий 1 (Старые данные, точки в одной таблице)
+    scenario2,  // Индекс 1: Сценарий 2 (Старые данные, точки в разных таблицах)
+    scenario3,  // Индекс 2: Сценарий 3 (Новые данные, точки в одной таблице)
+    scenario4   // Индекс 3: Сценарий 4 (Новые данные, точки в разных таблицах)
+];
+
+// Главная функция
 async function main() {
     console.log('=== Sheet Redactor ===\n');
     
-    // Выбор сценария работы
-    console.log('Выберите сценарий работы:');
-    console.log('1) Старые данные (value2 есть в Таблице 2)');
-    console.log('2) Новые данные (value2 искать в прошлой таблице)');
-    console.log('');
-    
-    const scenarioType = await prompts.askNumber(2, 'Выберите вариант');
-    const useNewDataScenario = scenarioType === 2;
-    
-    console.log(`✅ Выбрано: ${useNewDataScenario ? 'Новые данные' : 'Старые данные'}`);
-    console.log('');
-
-    // 1. Получаем список XLSX файлов
-    const files = fs.listFiles();
-    
-    if (files.length === 0) {
-        console.log('❌ В директории не найдено XLSX файлов');
-        console.log('Положите .xlsx файлы в папку с программой и запустите снова');
-        await prompts.waitForEnter();
-        process.exit(1);
-    }
-
-    // 2. Вызываем нужный сценарий
-    if (useNewDataScenario) {
-        await newDataScenario.run(files);
-    } else {
-        await oldDataScenario.run(files);
-    }
+    // Запускаем поток выполнения
+    await flow.runScenario(scenario1, allScenarios);
 }
 
 main();

@@ -155,13 +155,159 @@ function getTop10ByValue2(rows, valueName2, pointB) {
   return sorted.slice(0, 10)
 }
 
+/**
+ * Добавить столбцы разницы для сценария 1
+ * Формула: Б - А (поздняя - ранняя)
+ *
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} ccsrName - Название столбца CCSR
+ * @param {string} rateName - Название столбца Rate
+ * @param {string} pointA - Дата точки А
+ * @param {string} pointB - Дата точки Б
+ * @param {boolean} useAbsoluteRate - Использовать модуль для разницы Rate (по умолчанию false)
+ * @returns {any[]} Данные с добавленными столбцами разницы
+ */
+function addDifferenceColumnsScenario1(rows, ccsrName, rateName, pointA, pointB, useAbsoluteRate = false) {
+  const colA1 = `${pointA} (${ccsrName})`
+  const colB1 = `${pointB} (${ccsrName})`
+  const colA2 = `${pointA} (${rateName})`
+  const colB2 = `${pointB} (${rateName})`
+
+  const diffCcsr = `Разница (${ccsrName})`
+  const diffRate = `Разница (${rateName})`
+
+  // Вычисляем разницу для каждой строки: Б - А
+  return rows.map(row => {
+    const valA1 = Number(row[colA1]) || 0
+    const valB1 = Number(row[colB1]) || 0
+    const valA2 = Number(row[colA2]) || 0
+    const valB2 = Number(row[colB2]) || 0
+
+    // Формула: Б - А
+    // Для CCSR всегда обычная разница (нужна для фильтрации отрицательных)
+    const diff1 = valB1 - valA1
+    // Для Rate: с модулем если useAbsoluteRate = true
+    const diff2 = useAbsoluteRate ? Math.abs(valB2 - valA2) : (valB2 - valA2)
+
+    return {
+      ...row,
+      [diffCcsr]: diff1,
+      [diffRate]: diff2,
+    }
+  })
+}
+
+/**
+ * Фильтр строк где Разница (CCSR) < 0
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} ccsrName - Название столбца CCSR
+ * @returns {any[]} Отфильтрованный массив
+ */
+function filterNegativeByCcsr(rows, ccsrName) {
+  const diffCol = `Разница (${ccsrName})`
+
+  return rows.filter(row => {
+    const diff = row[diffCol]
+    return diff !== undefined && diff < 0
+  })
+}
+
+/**
+ * Сортировать по убыванию Разница (Rate)
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} rateName - Название столбца Rate
+ * @returns {any[]} Отсортированный массив
+ */
+function sortByDifferenceRate(rows, rateName) {
+  const diffCol = `Разница (${rateName})`
+
+  return [...rows].sort((a, b) => {
+    const diffA = Number(a[diffCol]) || 0
+    const diffB = Number(b[diffCol]) || 0
+    return diffB - diffA
+  })
+}
+
+/**
+ * Топ-10 по Разница (Rate) по убыванию
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} rateName - Название столбца Rate
+ * @returns {any[]} Топ-10 записей
+ */
+function getTop10ByDifferenceRate(rows, rateName) {
+  const sorted = sortByDifferenceRate(rows, rateName)
+  return sorted.slice(0, 10)
+}
+
+/**
+ * Добавить столбец разницы для сценария 3 (только CCSR, без Rate)
+ * Формула: Б - А
+ *
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} ccsrName - Название столбца CCSR
+ * @param {string} pointA - Дата точки А
+ * @param {string} pointB - Дата точки Б
+ * @returns {any[]} Данные с добавленным столбцом разницы
+ */
+function addDifferenceCcsrScenario3(rows, ccsrName, pointA, pointB) {
+  const colA = `${pointA} (${ccsrName})`
+  const colB = `${pointB} (${ccsrName})`
+  const diffCcsr = `Разница (${ccsrName})`
+
+  // Вычисляем разницу для каждой строки: Б - А
+  return rows.map(row => {
+    const valA = Number(row[colA]) || 0
+    const valB = Number(row[colB]) || 0
+
+    // Формула: Б - А
+    const diff = valB - valA
+
+    return {
+      ...row,
+      [diffCcsr]: diff,
+    }
+  })
+}
+
+/**
+ * Сортировать по убыванию Rate
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} rateName - Название столбца Rate
+ * @returns {any[]} Отсортированный массив
+ */
+function sortByRate(rows, rateName) {
+  return [...rows].sort((a, b) => {
+    const valA = Number(a[rateName]) || 0
+    const valB = Number(b[rateName]) || 0
+    return valB - valA  // По убыванию
+  })
+}
+
+/**
+ * Топ-10 по Rate по убыванию
+ * @param {any[]} rows - Массив строк данных
+ * @param {string} rateName - Название столбца Rate
+ * @returns {any[]} Топ-10 записей
+ */
+function getTop10ByRate(rows, rateName) {
+  const sorted = sortByRate(rows, rateName)
+  return sorted.slice(0, 10)
+}
+
 module.exports = {
   addDifferenceColumns,
   addDifferenceColumnsForNewData,
+  addDifferenceColumnsScenario1,
+  addDifferenceCcsrScenario3,
   sortByDifference,
+  sortByDifferenceRate,
+  sortByRate,
   sortByValue2,
   filterNegative,
+  filterNegativeByCcsr,
   getTopN,
   getTop10,
   getTop10ByValue2,
+  getTop10ByDifferenceRate,
+  getTop10ByRate,
 }

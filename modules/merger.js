@@ -254,7 +254,7 @@ function mergeTablesWithValue2Lookup(data1, data2, valueName1, valueName2, point
 function findValueByDate(dataMap, point, pointDate) {
     // Сначала ищем точное совпадение
     let value = dataMap.get(point);
-    
+
     if (value === undefined) {
         // Если не найдено, ищем по дате без времени
         for (const [date, val] of dataMap.entries()) {
@@ -268,8 +268,133 @@ function findValueByDate(dataMap, point, pointDate) {
     return value;
 }
 
+/**
+ * Объединить данные для сценария 1 "Старые данные. Обе точки в одной таблице"
+ * Таблица 1: CCSR для точек А и Б
+ * Таблица 2: Rate для точек А и Б
+ *
+ * @param {any[]} data1 - Данные Таблицы 1 (CCSR)
+ * @param {any[]} data2 - Данные Таблицы 2 (Rate)
+ * @param {string} ccsrName - Название столбца CCSR
+ * @param {string} rateName - Название столбца Rate
+ * @param {string} pointA - Дата точки А
+ * @param {string} pointB - Дата точки Б
+ * @returns {{headers: string[], rows: any[]}}
+ */
+function mergeTablesScenario1(data1, data2, ccsrName, rateName, pointA, pointB) {
+    // Группируем данные по названию и дате
+    const grouped1 = groupByTitleAndDate(data1);  // CCSR
+    const grouped2 = groupByTitleAndDate(data2);  // Rate
+
+    // Собираем все уникальные названия из обеих таблиц
+    const allTitles = new Set([...grouped1.keys(), ...grouped2.keys()]);
+    const sortedTitles = Array.from(allTitles).sort();
+
+    // Извлекаем только дату (без времени) для сравнения
+    const getDateOnly = (dateTime) => dateTime.split(' ')[0];
+    const pointADate = getDateOnly(pointA);
+    const pointBDate = getDateOnly(pointB);
+
+    // Формируем заголовки
+    const headers = ['Название'];
+    headers.push(`${pointA} (${ccsrName})`);
+    headers.push(`${pointB} (${ccsrName})`);
+    headers.push(`${pointA} (${rateName})`);
+    headers.push(`${pointB} (${rateName})`);
+
+    // Формируем строки
+    const rows = [];
+
+    for (const title of sortedTitles) {
+        const row = { 'Название': title };
+
+        const dataForTitle1 = grouped1.get(title) || new Map();  // CCSR
+        const dataForTitle2 = grouped2.get(title) || new Map();  // Rate
+
+        // Ищем CCSR для точек А и Б (с поиском по дате)
+        let ccsrA = findValueByDate(dataForTitle1, pointA, pointADate);
+        let ccsrB = findValueByDate(dataForTitle1, pointB, pointBDate);
+
+        // Ищем Rate для точек А и Б (с поиском по дате)
+        let rateA = findValueByDate(dataForTitle2, pointA, pointADate);
+        let rateB = findValueByDate(dataForTitle2, pointB, pointBDate);
+
+        // Добавляем значения
+        row[`${pointA} (${ccsrName})`] = ccsrA ?? '';
+        row[`${pointB} (${ccsrName})`] = ccsrB ?? '';
+        row[`${pointA} (${rateName})`] = rateA ?? '';
+        row[`${pointB} (${rateName})`] = rateB ?? '';
+
+        rows.push(row);
+    }
+
+    return { headers, rows };
+}
+
+/**
+ * Объединить данные для сценария 3 "Новые данные. Точки в одной таблице"
+ * Таблица 1: CCSR для точек А и Б
+ * Таблица 2: Rate — самые свежие по name (lookup)
+ *
+ * @param {any[]} data1 - Данные Таблицы 1 (CCSR для точек А и Б)
+ * @param {any[]} data2 - Данные Таблицы 2 (Rate для lookup)
+ * @param {string} ccsrName - Название столбца CCSR
+ * @param {string} rateName - Название столбца Rate
+ * @param {string} pointA - Дата точки А
+ * @param {string} pointB - Дата точки Б
+ * @param {Map<string, any>} rateLookup - Map: name → Rate (самые свежие)
+ * @returns {{headers: string[], rows: any[]}}
+ */
+function mergeTablesScenario3(data1, data2, ccsrName, rateName, pointA, pointB, rateLookup) {
+    // Группируем данные Таблицы 1 по названию и дате
+    const grouped1 = groupByTitleAndDate(data1);
+
+    // Собираем все уникальные названия из Таблицы 1
+    const allTitles = new Set(grouped1.keys());
+    const sortedTitles = Array.from(allTitles).sort();
+
+    // Извлекаем только дату (без времени) для сравнения
+    const getDateOnly = (dateTime) => dateTime.split(' ')[0];
+    const pointADate = getDateOnly(pointA);
+    const pointBDate = getDateOnly(pointB);
+
+    // Формируем заголовки
+    const headers = ['Название'];
+    headers.push(`${pointA} (${ccsrName})`);
+    headers.push(`${pointB} (${ccsrName})`);
+    headers.push(`Разница (${ccsrName})`);
+    headers.push(`${rateName}`);
+
+    // Формируем строки
+    const rows = [];
+
+    for (const title of sortedTitles) {
+        const row = { 'Название': title };
+
+        const dataForTitle1 = grouped1.get(title) || new Map();
+
+        // Ищем CCSR для точек А и Б (с поиском по дате)
+        let ccsrA = findValueByDate(dataForTitle1, pointA, pointADate);
+        let ccsrB = findValueByDate(dataForTitle1, pointB, pointBDate);
+
+        // Rate берём из lookup таблицы (самые свежие)
+        const rate = rateLookup.get(title) ?? '';
+
+        // Добавляем значения
+        row[`${pointA} (${ccsrName})`] = ccsrA ?? '';
+        row[`${pointB} (${ccsrName})`] = ccsrB ?? '';
+        row[`${rateName}`] = rate;
+
+        rows.push(row);
+    }
+
+    return { headers, rows };
+}
+
 module.exports = {
     mergeTables,
     mergeTablesWithValue2Lookup,
+    mergeTablesScenario1,
+    mergeTablesScenario3,
     findLatestValue2ByName,
 };

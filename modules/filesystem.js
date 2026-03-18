@@ -125,6 +125,7 @@ function writeXLSXSingle(data, sheetName = 'Result') {
 
 /**
  * Записать workbook с несколькими листами в XLSX файл
+ * Автоматически выравнивает столбцы по ширине заголовков
  * @param {object} workbook - Workbook объект SheetJS
  * @returns {string} Путь к сохранённому файлу
  */
@@ -133,12 +134,61 @@ function writeXLSX(workbook) {
     const timestamp = Date.now();
     const filename = `TOP_BAD_CELLS_${timestamp}.xlsx`;
     const filePath = path.join(outputDir, filename);
-    
+
     try {
+        // Выравниваем столбцы на каждом листе
+        for (const sheetName of workbook.SheetNames) {
+            const worksheet = workbook.Sheets[sheetName];
+            
+            // Получаем заголовки из первой строки
+            const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+            const headers = [];
+            
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                const cellAddr = XLSX.utils.encode_cell({ r: 0, c: col });
+                const cell = worksheet[cellAddr];
+                headers.push(cell ? String(cell.v) : '');
+            }
+            
+            // Вычисляем ширину столбцов по заголовкам
+            // SheetJS использует единицы, которые немного шире символов
+            // Поэтому используем коэффициент 0.9 для компенсации
+            const colWidths = headers.map(h => {
+                const width = Math.max(h.length, 3);
+                // Уменьшаем ширину на ~10% для точного соответствия
+                return { wch: Math.ceil(width * 0.8) };
+            });
+            
+            worksheet['!cols'] = colWidths;
+        }
+
         XLSX.writeFile(workbook, filePath);
-        return filePath;
+        
+        // Возвращаем путь и имя файла
+        return { filePath, filename };
     } catch (err) {
         throw new Error(`Ошибка записи файла: ${err.message}`);
+    }
+}
+
+/**
+ * Открыть файл в приложении по умолчанию
+ * @param {string} filePath - Полный путь к файлу
+ */
+function openFile(filePath) {
+    try {
+        if (process.platform === 'win32') {
+            // Windows
+            require('child_process').exec(`start "" "${filePath}"`);
+        } else if (process.platform === 'darwin') {
+            // macOS
+            require('child_process').exec(`open "${filePath}"`);
+        } else {
+            // Linux
+            require('child_process').exec(`xdg-open "${filePath}"`);
+        }
+    } catch (err) {
+        console.error(`Не удалось открыть файл: ${err.message}`);
     }
 }
 
@@ -148,5 +198,6 @@ module.exports = {
     readXLSX,
     ensureOutputDir,
     writeXLSXSingle,
-    writeXLSX
+    writeXLSX,
+    openFile
 };
