@@ -16,7 +16,7 @@ const prompts = require('./prompts');
  */
 async function chooseScenario() {
     const stepNum = state.getStep();
-    console.log(`\n[ШАГ ${stepNum}] === ГЛАВНОЕ МЕНЮ ===`);
+    console.log(`\n=== ГЛАВНОЕ МЕНЮ ===`);
     
     console.log('\nВыберите сценарий:');
     const choice = await prompts.displayMenu(state.SCENARIO_NAMES, 'Введите номер');
@@ -56,7 +56,7 @@ async function promptTable(tableKey, promptText = 'Выберите таблиц
         return true; // Пропускаем шаг (ошибка)
     }
     
-    console.log(`\n[ШАГ ${stepNum}] ${promptText}:`);
+    console.log(`\n${promptText}:`);
     const choice = await prompts.displayMenu(files, 'Введите номер');
     
     // Проверяем на возврат
@@ -88,10 +88,10 @@ async function promptTitle(tableKey) {
     
     // Читаем файл
     const fileData = fs.readXLSX(fileName);
-    const headers = fileData.headers;
-    
-    console.log(`\n[ШАГ ${stepNum}] Выберите заголовок НАЗВАНИЯ (СОТЫ) из "${fileName}":`);
-    const choice = await prompts.displayMenu(headers, 'Введите номер');
+    const cellsHeaders = fileData.headers.filter(v => v.toLowerCase().includes('cell'))
+
+    console.log(`\n[${fileName}]\nВ каком столбце имя СОТЫ?`);
+    const choice = await prompts.displayMenu(cellsHeaders, 'Введите номер');
     
     // Проверяем на возврат
     if (choice === 'back') {
@@ -99,10 +99,10 @@ async function promptTitle(tableKey) {
     }
     
     // Записываем в state
-    const titleName = headers[choice - 1];
+    const titleName = cellsHeaders[choice - 1];
     state.updateState(`${tableKey}.title`, titleName);
     console.log(`→ Выбран заголовок: ${titleName}`);
-    
+
     return true;
 }
 
@@ -124,7 +124,7 @@ async function promptValue1(tableKey) {
     const fileData = fs.readXLSX(fileName);
     const headers = fileData.headers;
     
-    console.log(`\n[ШАГ ${stepNum}] Выберите заголовок ПЕРВОГО ЗНАЧЕНИЯ (CCSR) из "${fileName}":`);
+    console.log(`\n[${fileName}]\nВыберите сравниваемый KPI":`);
     const choice = await prompts.displayMenu(headers, 'Введите номер');
     
     // Проверяем на возврат
@@ -156,10 +156,10 @@ async function promptValue2(tableKey) {
     
     // Читаем файл
     const fileData = fs.readXLSX(fileName);
-    const headers = fileData.headers;
-    
-    console.log(`\n[ШАГ ${stepNum}] Выберите заголовок ВТОРОГО ЗНАЧЕНИЯ (Rate) из "${fileName}":`);
-    const choice = await prompts.displayMenu(headers, 'Введите номер');
+
+    console.log(`\n[${fileName}]\nВ каком столбце ВЕС соты?`);
+    const rateHeaders = fileData.headers.filter(v => v.toLowerCase().includes('rate'))
+    const choice = await prompts.displayMenu(rateHeaders, 'Введите номер');
     
     // Проверяем на возврат
     if (choice === 'back') {
@@ -167,10 +167,10 @@ async function promptValue2(tableKey) {
     }
     
     // Записываем в state
-    const valueName = headers[choice - 1];
+    const valueName = rateHeaders[choice - 1];
     state.updateState(`${tableKey}.value2`, valueName);
     console.log(`→ Выбран заголовок: ${valueName}`);
-    
+
     return true;
 }
 
@@ -216,7 +216,10 @@ async function promptPoint(pointName, tableKey) {
         return true;
     }
     
-    console.log(`\n[ШАГ ${stepNum}] Выберите дату для точки ${pointName}:`);
+    console.log(pointName === 'А'
+      ? `\n[${fileName}]\nКогда было ХОРОШО (точка А)?`
+      : `\n[${fileName}]\nКогда было ПЛОХО (точка Б)?`
+    )
     const choice = await prompts.displayMenu(uniqueDates, 'Введите номер');
     
     // Проверяем на возврат

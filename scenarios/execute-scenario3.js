@@ -21,7 +21,7 @@ const scenario3 = [
     () => steps.chooseScenario(),
     
     // Шаг 1: Выбор первой таблицы (CCSR для точек А и Б)
-    () => steps.promptTable('table1', 'Укажите таблицу 1 (с данными CCSR для точек А и Б)'),
+    () => steps.promptTable('table1', 'Выберите таблицу 1 (с данными KPI для точек А и Б)'),
     
     // Шаг 2: Выбор заголовка НАЗВАНИЯ для таблицы 1
     () => steps.promptTitle('table1'),
@@ -36,7 +36,7 @@ const scenario3 = [
     () => steps.promptPoint('Б', 'table1'),
     
     // Шаг 6: Выбор второй таблицы (Rate lookup)
-    () => steps.promptTable('table2', 'Укажите таблицу 2 (с данными Rate)'),
+    () => steps.promptTable('table2', 'Выберите таблицу 2 (с данными ВЕСА сот)'),
     
     // Шаг 7: Выбор заголовка НАЗВАНИЯ для таблицы 2
     () => steps.promptTitle('table2'),
@@ -84,7 +84,7 @@ function extractDataFromTable(tableKey, valueKey) {
  * Выполнить сценарий 3
  */
 async function executeScenario3() {
-    console.log('\n[ШАГ ' + state.getStep() + '] === ВЫПОЛНЕНИЕ СЦЕНАРИЯ 3 ===');
+    console.log('\n=== ВЫПОЛНЕНИЕ СЦЕНАРИЯ 3 ===');
     
     // Получаем данные из state
     const pointA = state.getStateField('pointA');
@@ -99,19 +99,15 @@ async function executeScenario3() {
     console.log(`  Rate столбец: ${rateName} (из lookup таблицы)`);
     
     // 1. Извлекаем данные из таблиц
-    console.log('\nИзвлечение данных из таблиц...');
     const data1 = extractDataFromTable('table1', 'value1');  // CCSR из Таблицы 1
+    console.log('Данные из первой таблицы: ', data1.length)
     const data2 = extractDataFromTable('table2', 'value2');  // Rate из Таблицы 2
-    console.log(`  Таблица 1 (CCSR): ${data1.length} записей`);
-    console.log(`  Таблица 2 (Rate): ${data2.length} записей`);
-    
+    console.log('Данные из второй таблицы: ', data2.length)
+
     // 2. Находим самые свежие Rate по name
-    console.log('\nПоиск самых свежих Rate по названию...');
     const rateLookup = merger.findLatestValue2ByName(data2);
-    console.log(`  Найдено Rate: ${rateLookup.size} записей`);
-    
+
     // 3. Объединяем данные в сводную таблицу
-    console.log('\nПостроение сводной таблицы...');
     const { headers, rows } = merger.mergeTablesScenario3(
         data1,
         data2,
@@ -121,86 +117,43 @@ async function executeScenario3() {
         pointB,
         rateLookup
     );
-    console.log(`  Уникальных названий: ${rows.length}`);
-    console.log(`  Столбцов: ${headers.length}`);
-    
-    // 4. Вычисляем разницу CCSR (Б - А)
-    console.log('\nВычисление разницы CCSR (Б - А)...');
+
+    // 4. Вычисляем Изменение CCSR (Б - А)
     const withDifference = calculator.addDifferenceCcsrScenario3(
         rows,
         ccsrName,
         pointA,
         pointB
     );
-    console.log('  Добавлен столбец: Разница (CCSR)');
-    
+
     // 5. Сортируем по убыванию Rate
-    console.log('\nСортировка по убыванию "Rate"...');
     const sortedData = calculator.sortByRate(withDifference, rateName);
-    console.log('  Данные отсортированы');
-    
+
     // 6. Создаём workbook с листом "Данные"
     const workbook = XLSX.utils.book_new();
     const dataSheet = XLSX.utils.json_to_sheet(sortedData);
-    XLSX.utils.book_append_sheet(workbook, dataSheet, 'Данные');
-    console.log('\nЛист 1 "Данные": создан');
-    
-    // 7. Фильтруем отрицательные по Разница (CCSR)
-    console.log('\nФильтрация отрицательных по "Разница (CCSR)"...');
+    XLSX.utils.book_append_sheet(workbook, dataSheet, 'Исходные данные');
+
+    // 7. Фильтруем отрицательные по Изменение (CCSR)
     const negative = calculator.filterNegativeByCcsr(sortedData, ccsrName);
-    console.log(`  Найдено отрицательных: ${negative.length}`);
-    
+
     // 8. Создаём лист "Отрицательные"
     const negativeSheet = XLSX.utils.json_to_sheet(negative);
-    XLSX.utils.book_append_sheet(workbook, negativeSheet, 'Отрицательные');
-    console.log('Лист 2 "Отрицательные": создан');
-    
+    XLSX.utils.book_append_sheet(workbook, negativeSheet, 'Ухудшились');
+
     // 9. Топ-10 по Rate
-    console.log('\nПоиск топ-10 по "Rate"...');
     const top10 = calculator.getTop10ByRate(negative, rateName);
-    console.log(`  Топ-10 записей: ${top10.length}`);
-    
+
     // 10. Создаём лист "Ухудшение"
     const resultSheet = XLSX.utils.json_to_sheet(top10);
-    XLSX.utils.book_append_sheet(workbook, resultSheet, 'Ухудшение');
-    console.log('Лист 3 "Ухудшение": создан');
-    
+    XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
+
     // 11. Записываем в файл
-    console.log('\nСохранение файла...');
     const { filePath, filename } = fs.writeXLSX(workbook);
-    console.log(`  Файл сохранён: ${filename}`);
-    
+
     // 12. Открываем файл
-    console.log('\nОткрытие файла...');
     fs.openFile(filePath);
-    console.log('  Файл открыт в Excel');
-    
-    // 13. Вывод сводки
-    console.log('\n' + '='.repeat(50));
-    console.log('✅ Обработка завершена успешно!');
-    console.log('='.repeat(50));
-    console.log(`\nТаблица 1 (CCSR): ${state.getStateField('table1.file')}`);
-    console.log(`  Столбец названия: ${state.getStateField('table1.title')}`);
-    console.log(`  Столбец CCSR: ${ccsrName}`);
-    console.log(`  Записей: ${data1.length}`);
-    
-    console.log(`\nТаблица 2 (Rate): ${state.getStateField('table2.file')}`);
-    console.log(`  Столбец названия: ${state.getStateField('table2.title')}`);
-    console.log(`  Столбец Rate: ${rateName}`);
-    console.log(`  Записей: ${data2.length}`);
-    
-    console.log(`\nТочки:`);
-    console.log(`  А: ${pointA}`);
-    console.log(`  Б: ${pointB}`);
-    
-    console.log(`\nРезультат:`);
-    console.log(`  Уникальных названий: ${rows.length}`);
-    console.log(`  Столбцов: ${headers.length}`);
-    console.log(`  Лист 1 "Данные": ${sortedData.length} записей (отсортировано по Rate)`);
-    console.log(`  Лист 2 "Отрицательные": ${negative.length} записей`);
-    console.log(`  Лист 3 "Ухудшение": ${top10.length} записей (топ-10 по Rate)`);
-    console.log('='.repeat(50));
-    
+
     return true;
 }
 

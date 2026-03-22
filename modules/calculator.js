@@ -164,17 +164,16 @@ function getTop10ByValue2(rows, valueName2, pointB) {
  * @param {string} rateName - Название столбца Rate
  * @param {string} pointA - Дата точки А
  * @param {string} pointB - Дата точки Б
- * @param {boolean} useAbsoluteRate - Использовать модуль для разницы Rate (по умолчанию false)
  * @returns {any[]} Данные с добавленными столбцами разницы
  */
-function addDifferenceColumnsScenario1(rows, ccsrName, rateName, pointA, pointB, useAbsoluteRate = false) {
+function addDifferenceColumnsScenario1(rows, ccsrName, rateName, pointA, pointB) {
   const colA1 = `${pointA} (${ccsrName})`
   const colB1 = `${pointB} (${ccsrName})`
   const colA2 = `${pointA} (${rateName})`
   const colB2 = `${pointB} (${rateName})`
 
-  const diffCcsr = `Разница (${ccsrName})`
-  const diffRate = `Разница (${rateName})`
+  const diffCcsr = `Изменение (${ccsrName})`
+  const diffRate = `Изменение (${rateName})`
 
   // Вычисляем разницу для каждой строки: Б - А
   return rows.map(row => {
@@ -186,8 +185,7 @@ function addDifferenceColumnsScenario1(rows, ccsrName, rateName, pointA, pointB,
     // Формула: Б - А
     // Для CCSR всегда обычная разница (нужна для фильтрации отрицательных)
     const diff1 = valB1 - valA1
-    // Для Rate: с модулем если useAbsoluteRate = true
-    const diff2 = useAbsoluteRate ? Math.abs(valB2 - valA2) : (valB2 - valA2)
+    const diff2 = valB2 - valA2
 
     return {
       ...row,
@@ -204,7 +202,7 @@ function addDifferenceColumnsScenario1(rows, ccsrName, rateName, pointA, pointB,
  * @returns {any[]} Отфильтрованный массив
  */
 function filterNegativeByCcsr(rows, ccsrName) {
-  const diffCol = `Разница (${ccsrName})`
+  const diffCol = `Изменение (${ccsrName})`
 
   return rows.filter(row => {
     const diff = row[diffCol]
@@ -219,7 +217,7 @@ function filterNegativeByCcsr(rows, ccsrName) {
  * @returns {any[]} Отсортированный массив
  */
 function sortByDifferenceRate(rows, rateName) {
-  const diffCol = `Разница (${rateName})`
+  const diffCol = `Изменение (${rateName})`
 
   return [...rows].sort((a, b) => {
     const diffA = Number(a[diffCol]) || 0
@@ -252,7 +250,7 @@ function getTop10ByDifferenceRate(rows, rateName) {
 function addDifferenceCcsrScenario3(rows, ccsrName, pointA, pointB) {
   const colA = `${pointA} (${ccsrName})`
   const colB = `${pointB} (${ccsrName})`
-  const diffCcsr = `Разница (${ccsrName})`
+  const diffCcsr = `Изменение (${ccsrName})`
 
   // Вычисляем разницу для каждой строки: Б - А
   return rows.map(row => {

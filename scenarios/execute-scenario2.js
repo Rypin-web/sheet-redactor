@@ -21,7 +21,7 @@ const scenario2 = [
     () => steps.chooseScenario(),
     
     // Шаг 1: Выбор первой таблицы (Точка А)
-    () => steps.promptTable('table1', 'Укажите таблицу 1 (с данными точки А)'),
+    () => steps.promptTable('table1', 'Выберите таблицу 1 (с данными точки А)'),
     
     // Шаг 2: Выбор заголовка НАЗВАНИЯ для таблицы 1
     () => steps.promptTitle('table1'),
@@ -36,7 +36,7 @@ const scenario2 = [
     () => steps.promptPoint('А', 'table1'),
     
     // Шаг 6: Выбор второй таблицы (Точка Б)
-    () => steps.promptTable('table2', 'Укажите таблицу 2 (с данными точки Б)'),
+    () => steps.promptTable('table2', 'Выберите таблицу 2 (с данными точки Б)'),
     
     // Шаг 7: Выбор заголовка НАЗВАНИЯ для таблицы 2
     () => steps.promptTitle('table2'),
@@ -98,36 +98,37 @@ function extractDataForPoint(tableKey, valueKey, point) {
  * Выполнить сценарий 2
  */
 async function executeScenario2() {
-    console.log('\n[ШАГ ' + state.getStep() + '] === ВЫПОЛНЕНИЕ СЦЕНАРИЯ 2 ===');
+    console.log('\n=== ВЫПОЛНЕНИЕ СЦЕНАРИЯ 2 ===');
     
     // Получаем данные из state
     const pointA = state.getStateField('pointA');
     const pointB = state.getStateField('pointB');
     const ccsrName = state.getStateField('table1.value1');
     const rateName = state.getStateField('table1.value2');
-    
+
     console.log(`\nПараметры:`);
     console.log(`  Точка А: ${pointA} (Таблица 1)`);
+    console.log(`  CCSR столбец: ${ccsrName}`);
+    console.log(`  Rate столбец: ${rateName}`);
     console.log(`  Точка Б: ${pointB} (Таблица 2)`);
     console.log(`  CCSR столбец: ${ccsrName}`);
     console.log(`  Rate столбец: ${rateName}`);
-    
+
     // 1. Извлекаем данные из таблиц для каждой точки
-    console.log('\nИзвлечение данных из таблиц...');
-    
+
     // Таблица 1: CCSR и Rate для точки А
     const ccsrDataA = extractDataForPoint('table1', 'value1', 'pointA');
+    console.log('KPI из первой таблицы: ', ccsrDataA.length)
     const rateDataA = extractDataForPoint('table1', 'value2', 'pointA');
-    console.log(`  Таблица 1 (Точка А): CCSR=${ccsrDataA.length}, Rate=${rateDataA.length}`);
-    
+    console.log('ВЕС из первой таблицы: ', rateDataA.length)
     // Таблица 2: CCSR и Rate для точки Б
     const ccsrDataB = extractDataForPoint('table2', 'value1', 'pointB');
+    console.log('KPI из второй таблицы: ', ccsrDataB.length)
     const rateDataB = extractDataForPoint('table2', 'value2', 'pointB');
-    console.log(`  Таблица 2 (Точка Б): CCSR=${ccsrDataB.length}, Rate=${rateDataB.length}`);
-    
+    console.log('ВЕС из второй таблицы: ', rateDataB.length)
+
     // 2. Объединяем данные в сводную таблицу
-    console.log('\nПостроение сводной таблицы...');
-    
+
     // Группируем данные по названию
     const groupedCcsrA = new Map(ccsrDataA.map(item => [item.title, item.value]));
     const groupedCcsrB = new Map(ccsrDataB.map(item => [item.title, item.value]));
@@ -163,87 +164,45 @@ async function executeScenario2() {
         rows.push(row);
     }
     
-    console.log(`  Уникальных названий: ${rows.length}`);
-    console.log(`  Столбцов: ${headers.length}`);
-    
+
     // 3. Вычисляем разницу (Б - А)
-    console.log('\nВычисление разницы (Б - А)...');
     const withDifference = calculator.addDifferenceColumnsScenario1(
         rows,
         ccsrName,
         rateName,
         pointA,
         pointB,
-        true  // useAbsoluteRate = true (модуль для Rate)
     );
-    console.log('  Добавлены столбцы: Разница (CCSR), Разница (Rate) [с модулем]');
-    
-    // 4. Сортируем по убыванию Разница (Rate)
-    console.log('\nСортировка по убыванию "Разница (Rate)"...');
+
+    // 4. Сортируем по убыванию Изменение (Rate)
     const sortedData = calculator.sortByDifferenceRate(withDifference, rateName);
-    console.log('  Данные отсортированы');
-    
+
     // 5. Создаём workbook с листом "Данные"
     const workbook = XLSX.utils.book_new();
     const dataSheet = XLSX.utils.json_to_sheet(sortedData);
-    XLSX.utils.book_append_sheet(workbook, dataSheet, 'Данные');
-    console.log('\nЛист 1 "Данные": создан');
-    
-    // 6. Фильтруем отрицательные по Разница (CCSR)
-    console.log('\nФильтрация отрицательных по "Разница (CCSR)"...');
+    XLSX.utils.book_append_sheet(workbook, dataSheet, 'Исходные данные');
+
+    // 6. Фильтруем отрицательные по Изменение (CCSR)
     const negative = calculator.filterNegativeByCcsr(sortedData, ccsrName);
-    console.log(`  Найдено отрицательных: ${negative.length}`);
-    
+
     // 7. Создаём лист "Отрицательные"
     const negativeSheet = XLSX.utils.json_to_sheet(negative);
-    XLSX.utils.book_append_sheet(workbook, negativeSheet, 'Отрицательные');
-    console.log('Лист 2 "Отрицательные": создан');
-    
-    // 8. Топ-10 по Разница (Rate)
-    console.log('\nПоиск топ-10 по "Разница (Rate)"...');
+    XLSX.utils.book_append_sheet(workbook, negativeSheet, 'Ухудшились');
+
+    // 8. Топ-10 по Изменение (Rate)
     const top10 = calculator.getTop10ByDifferenceRate(negative, rateName);
-    console.log(`  Топ-10 записей: ${top10.length}`);
-    
+
     // 9. Создаём лист "Ухудшение"
     const resultSheet = XLSX.utils.json_to_sheet(top10);
-    XLSX.utils.book_append_sheet(workbook, resultSheet, 'Ухудшение');
-    console.log('Лист 3 "Ухудшение": создан');
-    
+    XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
+
     // 10. Записываем в файл
-    console.log('\nСохранение файла...');
     const { filePath, filename } = fs.writeXLSX(workbook);
-    console.log(`  Файл сохранён: ${filename}`);
-    
+
     // 11. Открываем файл
-    console.log('\nОткрытие файла...');
     fs.openFile(filePath);
-    console.log('  Файл открыт в Excel');
-    
-    // 12. Вывод сводки
-    console.log('\n' + '='.repeat(50));
-    console.log('✅ Обработка завершена успешно!');
-    console.log('='.repeat(50));
-    console.log(`\nТаблица 1 (Точка А): ${state.getStateField('table1.file')}`);
-    console.log(`  Столбец названия: ${state.getStateField('table1.title')}`);
-    console.log(`  Столбец CCSR: ${ccsrName}`);
-    console.log(`  Столбец Rate: ${rateName}`);
-    console.log(`  Точка А: ${pointA}`);
-    
-    console.log(`\nТаблица 2 (Точка Б): ${state.getStateField('table2.file')}`);
-    console.log(`  Столбец названия: ${state.getStateField('table2.title')}`);
-    console.log(`  Столбец CCSR: ${ccsrName}`);
-    console.log(`  Столбец Rate: ${rateName}`);
-    console.log(`  Точка Б: ${pointB}`);
-    
-    console.log(`\nРезультат:`);
-    console.log(`  Уникальных названий: ${rows.length}`);
-    console.log(`  Столбцов: ${headers.length}`);
-    console.log(`  Лист 1 "Данные": ${sortedData.length} записей`);
-    console.log(`  Лист 2 "Отрицательные": ${negative.length} записей`);
-    console.log(`  Лист 3 "Ухудшение": ${top10.length} записей`);
-    console.log('='.repeat(50));
-    
-    return true;
+
+     return true;
 }
 
 module.exports = { executeScenario2, scenario2 };
