@@ -20,7 +20,7 @@ const SCENARIO_NAMES = [
 const initialState = {
     scenario: null,       // Выбранный сценарий (номер)
     currentStep: 0,       // Текущий шаг в сценарии
-    
+
     // Таблицы (количество зависит от сценария)
     table1: {
         file: '',         // Имя файла
@@ -40,7 +40,12 @@ const initialState = {
         value1: '',
         value2: ''
     },
-    
+
+    // Alarm-table (только для сценариев 3 и 4)
+    alarmTable: {
+        file: ''        // Имя файла alarm-table (пустое = пропустить)
+    },
+
     // Точки — просто даты, не привязаны к таблицам
     pointA: '',           // Дата точки А (DD.MM.YY HH:MM)
     pointB: ''            // Дата точки Б (DD.MM.YY HH:MM)
@@ -60,6 +65,7 @@ function initState() {
     state.table1 = { ...initialState.table1 };
     state.table2 = { ...initialState.table2 };
     state.table3 = { ...initialState.table3 };
+    state.alarmTable = { ...initialState.alarmTable };
     return state;
 }
 

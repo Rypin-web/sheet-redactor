@@ -10,6 +10,7 @@ const merger = require('../modules/merger');
 const calculator = require('../modules/calculator');
 const state = require('../utils/state');
 const steps = require('../utils/steps');
+const alarmProcessor = require('../utils/alarm-processor');
 
 /**
  * Сценарий 4: массив шагов
@@ -53,8 +54,11 @@ const scenario4 = [
     
     // Шаг 11: Выбор заголовка Rate для таблицы 3
     () => steps.promptValue2('table3'),
-    
-    // Шаг 12: Выполнение сценария
+
+    // Шаг 12: Выбор alarm-table (только для сценариев 3 и 4)
+    () => steps.promptAlarmTable(),
+
+    // Шаг 13: Выполнение сценария
     executeScenario4
 ];
 
@@ -239,10 +243,16 @@ async function executeScenario4() {
     const resultSheet = XLSX.utils.json_to_sheet(top10);
     XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
 
-    // 11. Записываем в файл
+    // 11. Обрабатываем Alarm-отчёт (если выбран)
+    const alarmTableFile = state.getStateField('alarmTable.file');
+    if (alarmTableFile) {
+        alarmProcessor.processAlarmReport(workbook, alarmTableFile);
+    }
+
+    // 12. Записываем в файл
     const { filePath, filename } = fs.writeXLSX(workbook);
 
-    // 12. Открываем файл
+    // 13. Открываем файл
     fs.openFile(filePath);
 
     return true;

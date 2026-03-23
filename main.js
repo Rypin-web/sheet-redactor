@@ -12,7 +12,6 @@ const { scenario4 } = require('./scenarios/execute-scenario4');
 
 // Инициализируем state
 state.initState();
-
 // Массив всех сценариев
 const allScenarios = [
     scenario1,  // Индекс 0: Сценарий 1 (Старые данные, точки в одной таблице)
@@ -24,7 +23,6 @@ const allScenarios = [
 // Главная функция
 async function main() {
     console.log('=== Sheet Redactor ===\n');
-    
     // Запускаем поток выполнения
     await flow.runScenario(scenario1, allScenarios);
 }

@@ -235,11 +235,53 @@ async function promptPoint(pointName, tableKey) {
     return true;
 }
 
+/**
+ * Шаг: Выбор alarm-table (только для сценариев 3 и 4)
+ * @returns {Promise<'back'|true>}
+ */
+async function promptAlarmTable() {
+    const stepNum = state.getStep();
+    const pointB = state.getStateField('pointB');
+
+    // Получаем список файлов
+    const files = fs.listFiles();
+
+    if (files.length === 0) {
+        console.log('❌ В директории не найдено XLSX файлов');
+        return true;
+    }
+
+    console.log(`\nВыберите alarm-table за ${pointB} (1 для пропуска):`);
+
+    // Добавляем опцию "0) Пропустить"
+    const menuItems = ['Пропустить (без аварий)', ...files];
+    const choice = await prompts.displayMenu(menuItems, 'Введите номер');
+
+    // Проверяем на возврат
+    if (choice === 'back') {
+        return 'back';
+    }
+
+    // Записываем в state
+    if (choice === 1) {
+        // Выбрано "Пропустить"
+        state.updateState('alarmTable.file', '');
+        console.log('→ Обработка аварий пропущена');
+    } else {
+        // Выбран файл (индекс в menuItems = choice - 1, но с учётом "0) Пропустить")
+        const fileName = files[choice - 2];  // choice-1 (индекс в menuItems) - 1 (сдвиг из-за "Пропустить")
+        state.updateState('alarmTable.file', fileName);
+        console.log(`→ Выбран файл: ${fileName}`);
+    }
+    return true;
+}
+
 module.exports = {
     chooseScenario,
     promptTable,
     promptTitle,
     promptValue1,
     promptValue2,
-    promptPoint
+    promptPoint,
+    promptAlarmTable
 };
