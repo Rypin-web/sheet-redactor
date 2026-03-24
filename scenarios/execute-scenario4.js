@@ -11,6 +11,7 @@ const calculator = require('../modules/calculator');
 const state = require('../utils/state');
 const steps = require('../utils/steps');
 const alarmProcessor = require('../utils/alarm-processor');
+const bsCellsProcessor = require('../utils/bs-cells-processor');
 
 /**
  * Сценарий 4: массив шагов
@@ -164,10 +165,14 @@ async function executeScenario4() {
     
     // 1. Извлекаем данные из таблиц
 
-    // Таблица 1: CCSR для точки А
+    // Таблица 1: CCSR для точки А (отфильтрованные по дате)
     const ccsrDataA = extractDataForPoint('table1', 'pointA');
     console.log('  KPI из первой таблиц: ', ccsrDataA.length)
-    // Таблица 2: CCSR для точки Б
+    
+    // Таблица 1: все данные (для подсчёта сот)
+    const table1AllData = extractDataFromTable('table1', 'value1');
+    
+    // Таблица 2: CCSR для точки Б (отфильтрованные по дате)
     const ccsrDataB = extractDataForPoint('table2', 'pointB');
     console.log('  KPI из второй таблиц: ', ccsrDataB.length)
 
@@ -249,10 +254,13 @@ async function executeScenario4() {
         alarmProcessor.processAlarmReport(workbook, alarmTableFile);
     }
 
-    // 12. Записываем в файл
+    // 12. Обрабатываем статистику по БС
+    bsCellsProcessor.processBsCellsStats(workbook, table1AllData);
+
+    // 13. Записываем в файл
     const { filePath, filename } = fs.writeXLSX(workbook);
 
-    // 13. Открываем файл
+    // 14. Открываем файл
     fs.openFile(filePath);
 
     return true;

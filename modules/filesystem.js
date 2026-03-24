@@ -156,7 +156,7 @@ function writeXLSX(workbook) {
             const colWidths = headers.map(h => {
                 const width = Math.max(h.length, 3);
                 // Уменьшаем ширину на ~10% для точного соответствия
-                return { wch: Math.ceil(width * 0.8) };
+                return { wch: Math.ceil(width * 0.85) };
             });
             
             worksheet['!cols'] = colWidths;

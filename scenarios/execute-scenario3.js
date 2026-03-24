@@ -11,6 +11,7 @@ const calculator = require('../modules/calculator');
 const state = require('../utils/state');
 const steps = require('../utils/steps');
 const alarmProcessor = require('../utils/alarm-processor');
+const bsCellsProcessor = require('../utils/bs-cells-processor');
 
 /**
  * Сценарий 3: массив шагов
@@ -158,10 +159,13 @@ async function executeScenario3() {
         alarmProcessor.processAlarmReport(workbook, alarmTableFile);
     }
 
-    // 12. Записываем в файл
+    // 12. Обрабатываем статистику по БС
+    bsCellsProcessor.processBsCellsStats(workbook, data1);
+
+    // 13. Записываем в файл
     const { filePath, filename } = fs.writeXLSX(workbook);
 
-    // 13. Открываем файл
+    // 14. Открываем файл
     fs.openFile(filePath);
 
     return true;

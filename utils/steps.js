@@ -18,7 +18,7 @@ async function chooseScenario() {
     const stepNum = state.getStep();
     console.log(`\n=== ГЛАВНОЕ МЕНЮ ===`);
     
-    console.log('\nВыберите сценарий:');
+    console.log('\nПрошлые даты или последние сутки:');
     const choice = await prompts.displayMenu(state.SCENARIO_NAMES, 'Введите номер');
     
     // Проверяем на возврат

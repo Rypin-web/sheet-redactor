@@ -9,27 +9,31 @@ const fs = require('../modules/filesystem');
 /**
  * Извлечь БС из полного имени соты
  * @param {string} fullName - Полное имя соты (например, "MK4345_02")
- * @returns {string} БС (например, "MK1345" или "MK2345")
+ * @returns {string} БС (например, "MK1345" или "MK0132")
  */
 function extractBsName(fullName) {
     // Берём часть до "_"
-    const bsPart = fullName.split('_')[0];  // "MK4345"
+    const bsPart = fullName.split('_')[0];  // "MK4345" или "LR0132"
     
-    // Извлекаем буквы (первые 2) и цифры
+    // Извлекаем буквы (первые 2) и цифры (4 знака)
     const letters = bsPart.match(/[A-Z]{2}/i);
-    const numbers = bsPart.match(/\d{4}/);
+    const numbersMatch = bsPart.match(/\d{4}/);
     
-    if (!letters || !numbers) {
+    if (!letters || !numbersMatch) {
         return bsPart;  // Если не удалось распознать, возвращаем как есть
     }
     
     const letterPart = letters[0];
-    const numberPart = parseInt(numbers[0]);
+    const numberStr = numbersMatch[0];  // "4345" или "0132" (строка!)
+    const numberPart = parseInt(numberStr);  // 4345 или 132 (число)
     
     // Если число >= 3000, вычитаем 3000
     const bsNumber = numberPart >= 3000 ? numberPart - 3000 : numberPart;
     
-    return letterPart + bsNumber;
+    // Форматируем обратно с ведущими нулями (4 знака)
+    const bsNumberStr = String(bsNumber).padStart(4, '0');
+    
+    return letterPart + bsNumberStr;
 }
 
 /**
@@ -99,23 +103,37 @@ function processAlarmReport(workbook, alarmFileName) {
         row['БС'] = bsName;
         
         // 6.2. Поиск аварий в AlarmSource (точное совпадение с БС)
+        // Также проверяем LocationInformation на наличие любой записи Cell Name
         const alarms = [];
-        
+
         for (let i = alarmBuffer.length - 1; i >= 0; i--) {
             const alarmSource = alarmBuffer[i][alarmSourceIdx];
             if (alarmSource === bsName) {
-                // Точное совпадение
+                // Точное совпадение БС
                 const alarmName = alarmBuffer[i][alarmNameIdx];
-                alarms.push(`БС: ${alarmName} `);
+                const location = alarmBuffer[i][locationInfoIdx];
+                
+                // Проверяем, есть ли в LocationInformation любая запись Cell Name
+                // (не обязательно совпадающая с текущей сотой)
+                const anyCellNameMatch = location && location.match(/Cell Name=([^,\s]+)/);
+                
+                if (anyCellNameMatch && anyCellNameMatch[1]) {
+                    // Найдена конкретная сота на этой БС (любая)
+                    const cellName = anyCellNameMatch[1];
+                    alarms.push(`БС [${cellName}]: ${alarmName}`);
+                } else {
+                    // Авария всей БС (без привязки к соте)
+                    alarms.push(`БС: ${alarmName}`);
+                }
                 
                 // Удаляем из буфера (чтобы не найти повторно в LocationInformation)
                 alarmBuffer.splice(i, 1);
             }
         }
         
-        // 6.3. Поиск аварий в LocationInformation (по "Cell Name=[полное имя соты]")
+        // 6.3. Поиск аварий в LocationInformation (по точному совпадению "Cell Name=[полное имя соты]")
         const cellSearchString = `Cell Name=${fullName}`;
-        
+
         for (const alarmRow of alarmBuffer) {
             const location = alarmRow[locationInfoIdx];
             if (location && location.includes(cellSearchString)) {
