@@ -152,11 +152,11 @@ function writeXLSX(workbook) {
             
             // Вычисляем ширину столбцов по заголовкам
             // SheetJS использует единицы, которые немного шире символов
-            // Поэтому используем коэффициент 0.9 для компенсации
+            // Поэтому используем коэффициент для компенсации
             const colWidths = headers.map(h => {
                 const width = Math.max(h.length, 3);
                 // Уменьшаем ширину на ~10% для точного соответствия
-                return { wch: Math.ceil(width * 0.85) };
+                return { wch: Math.ceil(width * 0.95) };
             });
             
             worksheet['!cols'] = colWidths;

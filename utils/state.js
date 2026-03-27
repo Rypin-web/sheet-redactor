@@ -41,9 +41,10 @@ const initialState = {
         value2: ''
     },
 
-    // Alarm-table (только для сценариев 3 и 4)
-    alarmTable: {
-        file: ''        // Имя файла alarm-table (пустое = пропустить)
+    // Alarm-report (только для сценариев 3 и 4)
+    alarmReport: {
+        pointA: '',     // Имя файла alarm-table для точки А (пустое = пропустить)
+        pointB: ''      // Имя файла alarm-table для точки Б (пустое = пропустить)
     },
 
     // Точки — просто даты, не привязаны к таблицам
@@ -65,7 +66,7 @@ function initState() {
     state.table1 = { ...initialState.table1 };
     state.table2 = { ...initialState.table2 };
     state.table3 = { ...initialState.table3 };
-    state.alarmTable = { ...initialState.alarmTable };
+    state.alarmReport = { ...initialState.alarmReport };
     return state;
 }
 

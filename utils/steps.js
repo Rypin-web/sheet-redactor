@@ -237,11 +237,13 @@ async function promptPoint(pointName, tableKey) {
 
 /**
  * Шаг: Выбор alarm-table (только для сценариев 3 и 4)
+ * @param {string} point - Точка ('A' или 'B' латиницей)
  * @returns {Promise<'back'|true>}
  */
-async function promptAlarmTable() {
+async function promptAlarmTable(point) {
     const stepNum = state.getStep();
-    const pointB = state.getStateField('pointB');
+    const pointDate = state.getStateField(point === 'A' ? 'pointA' : 'pointB');
+    const pointDisplay = point === 'A' ? 'А' : 'Б';  // Для отображения (кириллица)
 
     // Получаем список файлов
     const files = fs.listFiles();
@@ -251,10 +253,10 @@ async function promptAlarmTable() {
         return true;
     }
 
-    console.log(`\nВыберите alarm-table за ${pointB} (1 для пропуска):`);
+    console.log(`\nВыберите alarm-table за точку ${pointDisplay} (${pointDate}) (или 0 для пропуска):`);
 
     // Добавляем опцию "0) Пропустить"
-    const menuItems = ['Пропустить (без аварий)', ...files];
+    const menuItems = ['0) Пропустить (без аварий)', ...files];
     const choice = await prompts.displayMenu(menuItems, 'Введите номер');
 
     // Проверяем на возврат
@@ -265,14 +267,15 @@ async function promptAlarmTable() {
     // Записываем в state
     if (choice === 1) {
         // Выбрано "Пропустить"
-        state.updateState('alarmTable.file', '');
+        state.updateState(`alarmReport.point${point}`, '');
         console.log('→ Обработка аварий пропущена');
     } else {
-        // Выбран файл (индекс в menuItems = choice - 1, но с учётом "0) Пропустить")
-        const fileName = files[choice - 2];  // choice-1 (индекс в menuItems) - 1 (сдвиг из-за "Пропустить")
-        state.updateState('alarmTable.file', fileName);
+        // Выбран файл
+        const fileName = files[choice - 2];
+        state.updateState(`alarmReport.point${point}`, fileName);
         console.log(`→ Выбран файл: ${fileName}`);
     }
+
     return true;
 }
 

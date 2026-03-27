@@ -12,6 +12,7 @@ const state = require('../utils/state');
 const steps = require('../utils/steps');
 const alarmProcessor = require('../utils/alarm-processor');
 const bsCellsProcessor = require('../utils/bs-cells-processor');
+const svodAlarmProcessor = require('../utils/svod-alarm-processor');
 
 /**
  * Сценарий 4: массив шагов
@@ -56,8 +57,9 @@ const scenario4 = [
     // Шаг 11: Выбор заголовка Rate для таблицы 3
     () => steps.promptValue2('table3'),
 
-    // Шаг 12: Выбор alarm-table (только для сценариев 3 и 4)
-    () => steps.promptAlarmTable(),
+    // Шаг 12: Выбор alarm-table для точки B
+    () => steps.promptAlarmTable('A'),
+    () => steps.promptAlarmTable('B'),
 
     // Шаг 13: Выполнение сценария
     executeScenario4
@@ -229,38 +231,44 @@ async function executeScenario4() {
     XLSX.utils.book_append_sheet(workbook, dataSheet, 'Исходные данные');
 
     // 7. Фильтруем отрицательные по Разница (CCSR)
-    // Отладка: посмотрим на значения разницы
-    const diffValues = withDifference.map(row => row[`Разница (${ccsrName})`]);
-    const negativeCount = diffValues.filter(v => v < 0).length;
-    const positiveCount = diffValues.filter(v => v > 0).length;
-    const zeroCount = diffValues.filter(v => v === 0).length;
-
     const negative = calculator.filterNegativeByCcsr(sortedData, ccsrName);
 
-    // 8. Создаём лист "Отрицательные"
+    // 8. Создаём лист "Отрицательные" (пока без аварий)
     const negativeSheet = XLSX.utils.json_to_sheet(negative);
     XLSX.utils.book_append_sheet(workbook, negativeSheet, 'Ухудшились');
 
-    // 9. Топ-10 по Rate
-    const top10 = calculator.getTop10ByRate(negative, rateName);
+    // 9. Добавляем столбец "БС" на все листы
+    alarmProcessor.addBsColumnToAllSheets(workbook);
 
-    // 10. Создаём лист "Ухудшение"
-    const resultSheet = XLSX.utils.json_to_sheet(top10);
-    XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
+    // 10. Обрабатываем Alarm-отчёты (на листе "Ухудшились")
+    const alarmA = state.getStateField('alarmReport.pointA');
+    const alarmB = state.getStateField('alarmReport.pointB');
+    alarmProcessor.processAlarmReports(workbook, alarmA, alarmB);
 
-    // 11. Обрабатываем Alarm-отчёт (если выбран)
-    const alarmTableFile = state.getStateField('alarmTable.file');
-    if (alarmTableFile) {
-        alarmProcessor.processAlarmReport(workbook, alarmTableFile);
+    // 11. Создаём лист "Свод аварий" (если оба отчёта выбраны)
+    if (alarmA && alarmB) {
+        svodAlarmProcessor.createSvodAlarmSheet(workbook, alarmA, alarmB);
     }
 
-    // 12. Обрабатываем статистику по БС
+    // 12. Читаем обновлённые данные из листа "Ухудшились" (теперь с БС и авариями)
+    const updatedNegative = XLSX.utils.sheet_to_json(workbook.Sheets['Ухудшились']);
+
+    // 13. Топ-10 по Rate (из обновлённых данных)
+    const top10 = calculator.getTop10ByRate(updatedNegative, rateName);
+
+    // 14. Создаём лист "Ухудшение"
+    // Явно указываем заголовки, чтобы все столбцы попали на лист
+    const allHeaders = Object.keys(top10[0]);
+    const resultSheet = XLSX.utils.json_to_sheet(top10, { header: allHeaders });
+    XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
+
+    // 15. Обрабатываем статистику по БС
     bsCellsProcessor.processBsCellsStats(workbook, table1AllData);
 
-    // 13. Записываем в файл
+    // 16. Записываем в файл
     const { filePath, filename } = fs.writeXLSX(workbook);
 
-    // 14. Открываем файл
+    // 17. Открываем файл
     fs.openFile(filePath);
 
     return true;
