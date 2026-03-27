@@ -66,15 +66,13 @@ function findColumnIndex(headers, name1, name2) {
  */
 function findAlarmsForCell(alarmBuffer, bsName, fullName, alarmSourceIdx, alarmNameIdx, locationInfoIdx) {
     const alarms = [];
-    const bufferCopy = alarmBuffer.map(row => ({...row}));  // Копия для удаления
-    const removeIndices = [];  // Индексы для удаления из оригинального буфера
 
     // 1. Поиск в AlarmSource (точное совпадение с БС)
-    for (let i = bufferCopy.length - 1; i >= 0; i--) {
-        const alarmSource = bufferCopy[i][alarmSourceIdx];
+    for (let i = 0; i < alarmBuffer.length; i++) {
+        const alarmSource = alarmBuffer[i][alarmSourceIdx];
         if (alarmSource === bsName) {
-            const alarmName = bufferCopy[i][alarmNameIdx];
-            const location = bufferCopy[i][locationInfoIdx];
+            const alarmName = alarmBuffer[i][alarmNameIdx];
+            const location = alarmBuffer[i][locationInfoIdx];
 
             // Проверяем, есть ли в LocationInformation запись Cell Name
             const cellNameMatch = location && location.match(/Cell Name=([^,\s]+)/);
@@ -87,21 +85,13 @@ function findAlarmsForCell(alarmBuffer, bsName, fullName, alarmSourceIdx, alarmN
                 // Авария всей БС (без привязки к соте)
                 alarms.push(`БС: ${alarmName}`);
             }
-
-            // Помечаем для удаления
-            removeIndices.push(i);
         }
-    }
-
-    // Удаляем найденные записи из копии
-    for (const idx of removeIndices) {
-        bufferCopy.splice(idx, 1);
     }
 
     // 2. Поиск в LocationInformation (по точному совпадению "Cell Name=[полное имя соты]")
     const cellSearchString = `Cell Name=${fullName}`;
 
-    for (const alarmRow of bufferCopy) {
+    for (const alarmRow of alarmBuffer) {
         const location = alarmRow[locationInfoIdx];
         if (location && location.includes(cellSearchString)) {
             const alarmName = alarmRow[alarmNameIdx];
