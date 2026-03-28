@@ -13,6 +13,7 @@ const steps = require('../utils/steps');
 const alarmProcessor = require('../utils/alarm-processor');
 const bsCellsProcessor = require('../utils/bs-cells-processor');
 const svodAlarmProcessor = require('../utils/svod-alarm-processor');
+const bsSvodProcessor = require('../utils/bs-svod-processor');
 
 /**
  * Сценарий 3: массив шагов
@@ -91,8 +92,6 @@ function extractDataFromTable(tableKey, valueKey) {
  * Выполнить сценарий 3
  */
 async function executeScenario3() {
-    console.log('\n=== ВЫПОЛНЕНИЕ СЦЕНАРИЯ 3 ===');
-
     // Получаем данные из state
     const pointA = state.getStateField('pointA');
     const pointB = state.getStateField('pointB');
@@ -157,9 +156,14 @@ async function executeScenario3() {
     alarmProcessor.processAlarmReports(workbook, alarmA, alarmB);
 
     // 11. Создаём лист "Свод аварий" (если оба отчёта выбраны)
+    if (alarmA && alarmB) {
+        svodAlarmProcessor.createSvodAlarmSheet(workbook, alarmA, alarmB);
+        
+        // 12. Создаём лист "Свод по БС" (только если оба отчёта)
+        bsSvodProcessor.createBsSvodSheet(workbook);
+    }
 
-
-    // 12. Читаем обновлённые данные из листа "Ухудшились" (теперь с БС и авариями)
+    // 13. Читаем обновлённые данные из листа "Ухудшились" (теперь с БС и авариями)
     const updatedNegative = XLSX.utils.sheet_to_json(workbook.Sheets['Ухудшились']);
 
     // 13. Топ-10 по Rate (из обновлённых данных)
@@ -171,9 +175,6 @@ async function executeScenario3() {
     const resultSheet = XLSX.utils.json_to_sheet(top10, { header: allHeaders });
     XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
 
-    if (alarmA && alarmB) {
-        svodAlarmProcessor.createSvodAlarmSheet(workbook, alarmA, alarmB);
-    }
     // 15. Обрабатываем статистику по БС
     bsCellsProcessor.processBsCellsStats(workbook, data1);
 

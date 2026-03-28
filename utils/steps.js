@@ -256,7 +256,7 @@ async function promptAlarmTable(point) {
     console.log(`\nВыберите alarm-table за точку ${pointDisplay} (${pointDate}) (или 0 для пропуска):`);
 
     // Добавляем опцию "0) Пропустить"
-    const menuItems = ['0) Пропустить (без аварий)', ...files];
+    const menuItems = ['Пропустить (без аварий)', ...files];
     const choice = await prompts.displayMenu(menuItems, 'Введите номер');
 
     // Проверяем на возврат

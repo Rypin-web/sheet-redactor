@@ -30,7 +30,6 @@ function findColumnIndex(headers, name1, name2) {
  * @param {string} alarmReportB - Имя файла alarm-table для точки Б
  */
 function createSvodAlarmSheet(workbook, alarmReportA, alarmReportB) {
-    console.log('\n=== СОЗДАНИЕ ЛИСТА "СВОД АВАРИЙ" ===');
 
     // Проверяем, что оба отчёта выбраны
     const hasA = alarmReportA && alarmReportA !== '';
@@ -86,6 +85,7 @@ function createSvodAlarmSheet(workbook, alarmReportA, alarmReportB) {
     const svodData = [];
 
     for (const alarmName of allAlarmNames) {
+    
         const bylo = countA.get(alarmName) || 0;
         const stalo = countB.get(alarmName) || 0;
         const raznica = stalo - bylo;

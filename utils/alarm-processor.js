@@ -155,7 +155,6 @@ function addBsColumnToSourceData(workbook) {
  * @param {string} alarmReportB - Имя файла alarm-table для точки Б (или '')
  */
 function processAlarmReports(workbook, alarmReportA, alarmReportB) {
-    console.log('\n=== ОБРАБОТКА ALARM-ОТЧЁТОВ ===');
 
     // Определяем режим работы
     const hasA = alarmReportA && alarmReportA !== '';
@@ -352,7 +351,6 @@ function processDualAlarmReports(workbook, sheetName, data, alarmFileA, alarmFil
  * @param {object} workbook - Workbook объект SheetJS
  */
 function addBsColumnToAllSheets(workbook) {
-    console.log('\n=== ДОБАВЛЕНИЕ СТОЛБЦА "БС" НА ВСЕ ЛИСТЫ ===');
 
     const sheetNames = ['Исходные данные', 'Ухудшились', 'ТОП-10'];
 

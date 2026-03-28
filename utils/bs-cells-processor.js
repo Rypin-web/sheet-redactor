@@ -42,8 +42,6 @@ function countCellsInTable1(table1Data, cellPrefix) {
  * @param {Array<{date: string, title: string, value: any}>} table1Data - Данные Таблицы 1
  */
 function processBsCellsStats(workbook, table1Data) {
-    console.log('\n=== ПОДСЧЁТ ПОСТРАДАВШИХ СОТ НА БС ===');
-
     // 1. Получить лист "ТОП-10" (берём список БС оттуда)
     const top10Sheet = workbook.Sheets['ТОП-10'];
     if (!top10Sheet) {
@@ -85,8 +83,6 @@ function processBsCellsStats(workbook, table1Data) {
         }
     }
     const uniqueBsList = Array.from(uniqueBsSet).sort();
-
-    console.log(`  Найдено уникальных БС в ТОП-10: ${uniqueBsList.length}`);
 
     // 6. Для каждой БС из ТОП-10 найти соответствующие соты в "Ухудшились"
     const bsToCellsMap = new Map();  // БС → Set<полные имена сот>
@@ -134,7 +130,6 @@ function processBsCellsStats(workbook, table1Data) {
             '_sortValue': result === 'ВСЕ' ? Infinity : sourceCount  // Для сортировки
         });
 
-        console.log(`  БС ${bsName}: ${sourceCount} из ${totalInTable1} → ${result}`);
     }
 
     // Сортировка: "ВСЕ" вверху, затем по убыванию числа

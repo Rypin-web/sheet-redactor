@@ -23,6 +23,7 @@ const allScenarios = [
 // Главная функция
 async function main() {
     console.log('=== Sheet Redactor ===\n');
+    console.log('Введите "к" или "r" чтобы вернуться назад')
     // Запускаем поток выполнения
     await flow.runScenario(scenario1, allScenarios);
 }
