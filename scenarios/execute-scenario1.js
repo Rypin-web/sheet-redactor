@@ -36,7 +36,7 @@ const scenario1 = [
     () => steps.promptPoint('Б', 'table1'),
     
     // Шаг 7: Выбор второй таблицы
-    () => steps.promptTable('table2', 'Выберите таблицу 2 (с ВЕСОМ сот)'),
+    () => steps.promptTable('table2', 'Выберите таблицу 2 (с данными Rate сот)'),
     
     // Шаг 8: Выбор заголовка НАЗВАНИЯ для таблицы 2
     () => steps.promptTitle('table2'),

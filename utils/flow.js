@@ -44,7 +44,6 @@ async function runScenario(scenarioSteps, allScenarios = null) {
                 const startStep = result.startStep || 1;
                 
                 if (allScenarios && allScenarios[scenarioIndex]) {
-                    console.log(`\n→ Переключение на сценарий ${scenarioIndex + 1}, шаг ${startStep}`);
                     currentScenario = allScenarios[scenarioIndex];
                     currentStep = startStep;
                 } else {

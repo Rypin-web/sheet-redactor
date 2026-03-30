@@ -40,7 +40,7 @@ const scenario3 = [
     () => steps.promptPoint('Б', 'table1'),
 
     // Шаг 6: Выбор второй таблицы (Rate lookup)
-    () => steps.promptTable('table2', 'Выберите таблицу 2 (с данными ВЕСА сот)'),
+    () => steps.promptTable('table2', 'Выберите таблицу 2 (с данными Rate сот)'),
 
     // Шаг 7: Выбор заголовка НАЗВАНИЯ для таблицы 2
     () => steps.promptTitle('table2'),

@@ -50,7 +50,7 @@ const scenario4 = [
     () => steps.promptPoint('Б', 'table2'),
     
     // Шаг 9: Выбор третьей таблицы (Rate lookup)
-    () => steps.promptTable('table3', 'Выберите таблицу 3 (с данными Rate)'),
+    () => steps.promptTable('table3', 'Выберите таблицу 3 (с данными Rate сот)'),
     
     // Шаг 10: Выбор заголовка НАЗВАНИЯ для таблицы 3
     () => steps.promptTitle('table3'),

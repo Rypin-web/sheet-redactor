@@ -29,8 +29,8 @@ async function chooseScenario() {
     
     // Записываем выбор
     state.updateState('scenario', choice);
-    console.log(`→ Выбран сценарий №${choice}`);
-    
+    console.log(`→ ${state.SCENARIO_NAMES[choice - 1]}`);
+
     // Возвращаем информацию для переключения сценария
     return {
         type: 'scenario_switch',
@@ -67,7 +67,7 @@ async function promptTable(tableKey, promptText = 'Выберите таблиц
     // Записываем в state
     const fileName = files[choice - 1];
     state.updateState(`${tableKey}.file`, fileName);
-    console.log(`→ Выбран файл: ${fileName}`);
+    console.log(`→ ${fileName}`);
     
     return true;
 }
@@ -90,7 +90,7 @@ async function promptTitle(tableKey) {
     const fileData = fs.readXLSX(fileName);
     const cellsHeaders = fileData.headers.filter(v => v.toLowerCase().includes('cell'))
 
-    console.log(`\n[${fileName}]\nВ каком столбце имя СОТЫ?`);
+    console.log(`\nВ каком столбце имя СОТЫ?`);
     const choice = await prompts.displayMenu(cellsHeaders, 'Введите номер');
     
     // Проверяем на возврат
@@ -101,7 +101,7 @@ async function promptTitle(tableKey) {
     // Записываем в state
     const titleName = cellsHeaders[choice - 1];
     state.updateState(`${tableKey}.title`, titleName);
-    console.log(`→ Выбран заголовок: ${titleName}`);
+    console.log(`→ ${titleName}`);
 
     return true;
 }
@@ -124,7 +124,7 @@ async function promptValue1(tableKey) {
     const fileData = fs.readXLSX(fileName);
     const headers = fileData.headers;
     
-    console.log(`\n[${fileName}]\nВыберите сравниваемый KPI":`);
+    console.log(`\nВыберите сравниваемый KPI":`);
     const choice = await prompts.displayMenu(headers, 'Введите номер');
     
     // Проверяем на возврат
@@ -135,7 +135,7 @@ async function promptValue1(tableKey) {
     // Записываем в state
     const valueName = headers[choice - 1];
     state.updateState(`${tableKey}.value1`, valueName);
-    console.log(`→ Выбран заголовок: ${valueName}`);
+    console.log(`→ ${valueName}`);
     
     return true;
 }
@@ -157,7 +157,7 @@ async function promptValue2(tableKey) {
     // Читаем файл
     const fileData = fs.readXLSX(fileName);
 
-    console.log(`\n[${fileName}]\nВ каком столбце ВЕС соты?`);
+    console.log(`\nВ каком столбце ВЕС соты?`);
     const rateHeaders = fileData.headers.filter(v => v.toLowerCase().includes('rate'))
     const choice = await prompts.displayMenu(rateHeaders, 'Введите номер');
     
@@ -169,7 +169,7 @@ async function promptValue2(tableKey) {
     // Записываем в state
     const valueName = rateHeaders[choice - 1];
     state.updateState(`${tableKey}.value2`, valueName);
-    console.log(`→ Выбран заголовок: ${valueName}`);
+    console.log(`→ ${valueName}`);
 
     return true;
 }
@@ -217,8 +217,8 @@ async function promptPoint(pointName, tableKey) {
     }
     
     console.log(pointName === 'А'
-      ? `\n[${fileName}]\nКогда было ХОРОШО (точка А)?`
-      : `\n[${fileName}]\nКогда было ПЛОХО (точка Б)?`
+      ? `\nКогда было ХОРОШО (точка А)?`
+      : `\nКогда было ПЛОХО (точка Б)?`
     )
     const choice = await prompts.displayMenu(uniqueDates, 'Введите номер');
     
@@ -230,7 +230,7 @@ async function promptPoint(pointName, tableKey) {
     // Записываем в state
     const pointDate = uniqueDates[choice - 1];
     state.updateState(pointName === 'А' ? 'pointA' : 'pointB', pointDate);
-    console.log(`→ Выбрана дата: ${pointDate}`);
+    console.log(`→ ${pointDate}`);
     
     return true;
 }
@@ -273,7 +273,7 @@ async function promptAlarmTable(point) {
         // Выбран файл
         const fileName = files[choice - 2];
         state.updateState(`alarmReport.point${point}`, fileName);
-        console.log(`→ Выбран файл: ${fileName}`);
+        console.log(`→ ${fileName}`);
     }
 
     return true;
