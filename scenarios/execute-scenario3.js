@@ -14,6 +14,7 @@ const alarmProcessor = require('../utils/alarm-processor');
 const bsCellsProcessor = require('../utils/bs-cells-processor');
 const svodAlarmProcessor = require('../utils/svod-alarm-processor');
 const bsSvodProcessor = require('../utils/bs-svod-processor');
+const additionalColumnsProcessor = require('../utils/additional-columns-processor');
 
 /**
  * Сценарий 3: массив шагов
@@ -52,7 +53,10 @@ const scenario3 = [
     () => steps.promptAlarmTable('A'),
     () => steps.promptAlarmTable('B'),
 
-    // Шаг 10: Выполнение сценария
+    // Шаг 10: Выбор дополнительных столбцов
+    () => steps.promptAdditionalColumns(),
+
+    // Шаг 11: Выполнение сценария
     executeScenario3
 ];
 
@@ -175,13 +179,29 @@ async function executeScenario3() {
     const resultSheet = XLSX.utils.json_to_sheet(top10, { header: allHeaders });
     XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
 
-    // 15. Обрабатываем статистику по БС
+    // 15. Добавляем дополнительные столбцы (если выбраны)
+    const additionalColumns = state.getStateField('additionalColumns');
+    if (additionalColumns && additionalColumns.length > 0) {
+        // Добавляем на лист "Ухудшились"
+        additionalColumnsProcessor.addAdditionalColumnsToSheet(
+            workbook, 'Ухудшились', additionalColumns,
+            pointA, pointB
+        );
+        
+        // Добавляем на лист "ТОП-10"
+        additionalColumnsProcessor.addAdditionalColumnsToSheet(
+            workbook, 'ТОП-10', additionalColumns,
+            pointA, pointB
+        );
+    }
+
+    // 16. Обрабатываем статистику по БС
     bsCellsProcessor.processBsCellsStats(workbook, data1);
 
-    // 16. Записываем в файл
+    // 17. Записываем в файл
     const { filePath, filename } = fs.writeXLSX(workbook);
 
-    // 17. Открываем файл
+    // 18. Открываем файл
     fs.openFile(filePath);
 
     return true;

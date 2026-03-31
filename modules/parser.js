@@ -133,13 +133,13 @@ function parseDate(dateValue) {
  */
 function extractData(rows, dateIndex, titleIndex, valueIndex) {
     const result = [];
-    
+
     for (const row of rows) {
         // Получаем значения из строки
         const dateRaw = row[dateIndex];
         const title = row[titleIndex];
         const value = row[valueIndex];
-        
+
         // Пропускаем строки с пустыми обязательными полями
         if (!dateRaw || !title) {
             continue;
@@ -147,17 +147,67 @@ function extractData(rows, dateIndex, titleIndex, valueIndex) {
 
         // Нормализуем дату
         const date = parseDate(dateRaw);
-        
+
         if (!date) {
             continue; // Пропускаем строки с некорректной датой
         }
-        
+
         // Добавляем запись
         result.push({
             date,
             title: String(title).trim(),
             value: value !== undefined && value !== null ? value : ''
         });
+    }
+
+    return result;
+}
+
+/**
+ * Извлечь данные из таблицы со всеми столбцами
+ * Возвращает объект с date, title и всеми остальными столбцами по заголовкам
+ * @param {any[][]} rows - Массив строк данных
+ * @param {string[]} headers - Заголовки столбцов
+ * @param {number} dateIndex - Индекс столбца даты
+ * @param {number} titleIndex - Индекс столбца названия
+ * @returns {Array<{date: string, title: string, [key: string]: any}>}
+ */
+function extractDataWithAllColumns(rows, headers, dateIndex, titleIndex) {
+    const result = [];
+
+    for (const row of rows) {
+        // Получаем значения из строки
+        const dateRaw = row[dateIndex];
+        const title = row[titleIndex];
+
+        // Пропускаем строки с пустыми обязательными полями
+        if (!dateRaw || !title) {
+            continue;
+        }
+
+        // Нормализуем дату
+        const date = parseDate(dateRaw);
+
+        if (!date) {
+            continue; // Пропускаем строки с некорректной датой
+        }
+
+        // Создаём объект со всеми столбцами
+        const rowData = {
+            date,
+            title: String(title).trim()
+        };
+
+        // Добавляем все столбцы по заголовкам
+        for (let i = 0; i < headers.length; i++) {
+            const header = headers[i].trim();
+            const value = row[i];
+            if (value !== undefined && value !== null && value !== '') {
+                rowData[header] = value;
+            }
+        }
+
+        result.push(rowData);
     }
 
     return result;
@@ -183,5 +233,6 @@ module.exports = {
     findDateColumnIndex,
     parseDate,
     extractData,
+    extractDataWithAllColumns,
     getUniqueDates
 };

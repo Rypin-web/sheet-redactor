@@ -4,6 +4,7 @@
  */
 
 const XLSX = require('xlsx');
+const state = require('./state');
 
 /**
  * Извлечь префикс соты (часть до "_") для поиска в Таблице 1
@@ -157,9 +158,13 @@ function processBsCellsStats(workbook, table1Data) {
         top10Sheet[`B${row}`] = { v: stats[i]['Пострадавших сот'], t: typeof stats[i]['Пострадавших сот'] === 'string' ? 's' : 'n' };
     }
 
-    // Обновить диапазон листа
+    // Обновить диапазон листа (динамически с учётом дополнительных столбцов)
     const lastRow = 13 + stats.length;
-    top10Sheet['!ref'] = `A1:H${lastRow}`;
+    const additionalColumns = state.getStateField('additionalColumns') || [];
+    const baseCols = 8; // A-H (базовые столбцы)
+    const totalCols = baseCols + additionalColumns.length;
+    const lastColLetter = String.fromCharCode(65 + totalCols - 1); // 65 = 'A'
+    top10Sheet['!ref'] = `A1:${lastColLetter}${lastRow}`;
 
     // 7. Обновить выравнивание столбцов (добавить для новых ячеек)
     if (!top10Sheet['!cols']) {

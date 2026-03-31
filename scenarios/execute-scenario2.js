@@ -10,6 +10,7 @@ const merger = require('../modules/merger');
 const calculator = require('../modules/calculator');
 const state = require('../utils/state');
 const steps = require('../utils/steps');
+const additionalColumnsProcessor = require('../utils/additional-columns-processor');
 
 /**
  * Сценарий 2: массив шагов
@@ -49,8 +50,11 @@ const scenario2 = [
     
     // Шаг 10: Выбор даты для точки Б
     () => steps.promptPoint('Б', 'table2'),
-    
-    // Шаг 11: Выполнение сценария
+
+    // Шаг 11: Выбор дополнительных столбцов
+    () => steps.promptAdditionalColumns(),
+
+    // Шаг 12: Выполнение сценария
     executeScenario2
 ];
 
@@ -196,10 +200,26 @@ async function executeScenario2() {
     const resultSheet = XLSX.utils.json_to_sheet(top10);
     XLSX.utils.book_append_sheet(workbook, resultSheet, 'ТОП-10');
 
-    // 10. Записываем в файл
+    // 10. Добавляем дополнительные столбцы (если выбраны)
+    const additionalColumns = state.getStateField('additionalColumns');
+    if (additionalColumns && additionalColumns.length > 0) {
+        // Добавляем на лист "Ухудшились"
+        additionalColumnsProcessor.addAdditionalColumnsToSheet(
+            workbook, 'Ухудшились', additionalColumns,
+            pointA, pointB
+        );
+        
+        // Добавляем на лист "ТОП-10"
+        additionalColumnsProcessor.addAdditionalColumnsToSheet(
+            workbook, 'ТОП-10', additionalColumns,
+            pointA, pointB
+        );
+    }
+
+    // 11. Записываем в файл
     const { filePath, filename } = fs.writeXLSX(workbook);
 
-    // 11. Открываем файл
+    // 12. Открываем файл
     fs.openFile(filePath);
 
      return true;

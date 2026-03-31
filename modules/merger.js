@@ -397,4 +397,5 @@ module.exports = {
     mergeTablesScenario1,
     mergeTablesScenario3,
     findLatestValue2ByName,
+    groupByTitleAndDate
 };

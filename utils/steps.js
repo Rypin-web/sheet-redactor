@@ -9,6 +9,7 @@ const state = require('./state');
 const fs = require('../modules/filesystem');
 const parser = require('../modules/parser');
 const prompts = require('./prompts');
+const additionalColumnsProcessor = require('./additional-columns-processor');
 
 /**
  * Шаг 0: Выбор сценария
@@ -279,6 +280,105 @@ async function promptAlarmTable(point) {
     return true;
 }
 
+/**
+ * Шаг: Выбор дополнительных столбцов
+ * Показывает общие заголовки из table1 и table2, исключая уже выбранные
+ * @returns {Promise<'back'|true>}
+ */
+async function promptAdditionalColumns() {
+    const stepNum = state.getStep();
+
+    // Получаем имена файлов
+    const file1 = state.getStateField('table1.file');
+    const file2 = state.getStateField('table2.file');
+
+    if (!file1 || !file2) {
+        console.log('  Таблицы 1 или 2 не выбраны, пропускаем');
+        return true;
+    }
+
+    // Читаем обе таблицы
+    const fileData1 = fs.readXLSX(file1);
+    const fileData2 = fs.readXLSX(file2);
+
+    const headers1 = fileData1.headers;
+    const headers2 = fileData2.headers;
+
+    // Получаем уже выбранные заголовки
+    const title1 = state.getStateField('table1.title');
+    const value1_1 = state.getStateField('table1.value1');
+    const value2_1 = state.getStateField('table1.value2');
+    const title2 = state.getStateField('table2.title');
+    const value1_2 = state.getStateField('table2.value1');
+    const value2_2 = state.getStateField('table2.value2');
+
+    // Получаем доступные заголовки для выбора
+    const availableHeaders = additionalColumnsProcessor.getAvailableHeaders(
+        headers1, headers2,
+        title1, value1_1, value2_1,
+        title2, value1_2, value2_2
+    );
+
+    if (availableHeaders.length === 0) {
+        console.log('  Нет доступных заголовков для выбора, пропускаем');
+        return true;
+    }
+
+    console.log(`\nВыберите дополнительные столбцы для добавления в результат:`);
+    console.log('(введите номера через пробел, например: 2 3 5, или 0 для пропуска)');
+
+    // Выводим меню
+    console.log('');
+    availableHeaders.forEach((item, index) => {
+        console.log(`${index + 1}) ${item}`);
+    });
+    console.log('');
+
+    // Получаем сырой ввод
+    const readline = require('readline');
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+        rl.question('Введите номера через пробел ', (answer) => {
+            rl.close();
+
+            // Проверяем на команду возврата
+            if (prompts.isGoBack(answer)) {
+                resolve('back');
+                return;
+            }
+
+            // Парсим номера: разбиваем по пробелам, фильтруем пустые, конвертируем в числа
+            const numbers = answer
+                .trim()
+                .split(/\s+/)
+                .map(n => parseInt(n, 10))
+                .filter(n => !isNaN(n) && n > 0);
+
+            // Дедупликация и фильтрация валидных номеров
+            const uniqueNumbers = [...new Set(numbers)]
+                .filter(n => n >= 1 && n <= availableHeaders.length);
+
+            if (uniqueNumbers.length === 0) {
+                // Ничего не выбрано
+                state.updateState('additionalColumns', []);
+                console.log('→ Дополнительные столбцы не выбраны');
+            } else {
+                // Преобразуем номера в названия заголовков
+                const selectedHeaders = uniqueNumbers.map(n => availableHeaders[n - 1]);
+                state.updateState('additionalColumns', selectedHeaders);
+                console.log(`→ Выбрано столбцов: ${selectedHeaders.length}`);
+                selectedHeaders.forEach(h => console.log(`   - ${h}`));
+            }
+
+            resolve(true);
+        });
+    });
+}
+
 module.exports = {
     chooseScenario,
     promptTable,
@@ -286,5 +386,6 @@ module.exports = {
     promptValue1,
     promptValue2,
     promptPoint,
-    promptAlarmTable
+    promptAlarmTable,
+    promptAdditionalColumns
 };
