@@ -90,14 +90,14 @@ function createSvodAlarmSheet(workbook, alarmReportA, alarmReportB) {
         const stalo = countB.get(alarmName) || 0;
         const raznica = stalo - bylo;
 
-        // Формула: 1 - (Стало / Было)
+        // Формула: (Стало / Было) - 1
         // Если Было = 0, то процент = 0 (или 100% ухудшения)
         let percent;
-        if (stalo === 0) {
+        if (bylo === 0) {
             // Если в точке А не было аварий, а в точке Б появились — это 100% ухудшение
-            percent = bylo > 0 ? 1 : 0;
+            percent = stalo > 0 ? 1 : 0;
         } else {
-            percent = 1 - (bylo / stalo);
+            percent = ((stalo / bylo) - 1).toFixed(2); // округление до 2 знаков
         }
 
         svodData.push({
