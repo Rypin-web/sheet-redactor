@@ -79,11 +79,15 @@ function findAlarmsForCell(alarmBuffer, bsName, fullName, alarmSourceIdx, alarmN
 
             if (cellNameMatch && cellNameMatch[1]) {
                 // Найдена конкретная сота на этой БС
+                // Было: БС [MK0002_02]: Transport failure
+                // Стало: MK0002_02: Transport failure
                 const cellName = cellNameMatch[1];
-                alarms.push(`БС [${cellName}]: ${alarmName}`);
+                alarms.push(`${cellName}: ${alarmName}`);
             } else {
                 // Авария всей БС (без привязки к соте)
-                alarms.push(`БС: ${alarmName}`);
+                // Было: БС: Transport failure
+                // Стало: Transport failure
+                alarms.push(alarmName);
             }
         }
     }
@@ -95,7 +99,9 @@ function findAlarmsForCell(alarmBuffer, bsName, fullName, alarmSourceIdx, alarmN
         const location = alarmRow[locationInfoIdx];
         if (location && location.includes(cellSearchString)) {
             const alarmName = alarmRow[alarmNameIdx];
-            alarms.push(`СОТА: ${alarmName}`);
+            // Было: СОТА: Transport failure
+            // Стало: MK0002_02: Transport failure
+            alarms.push(`${fullName}: ${alarmName}`);
         }
     }
 

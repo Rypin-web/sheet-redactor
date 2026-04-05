@@ -251,9 +251,9 @@ async function executeScenario4() {
     // 11. Создаём лист "Свод аварий" (если оба отчёта выбраны)
     if (alarmA && alarmB) {
         svodAlarmProcessor.createSvodAlarmSheet(workbook, alarmA, alarmB);
-        
+
         // 12. Создаём лист "Свод по БС" (только если оба отчёта)
-        bsSvodProcessor.createBsSvodSheet(workbook);
+        bsSvodProcessor.createBsSvodSheet(workbook, alarmA, alarmB);
     }
 
     // 13. Читаем обновлённые данные из листа "Ухудшились" (теперь с БС и авариями)
