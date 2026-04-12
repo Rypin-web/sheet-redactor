@@ -179,7 +179,7 @@ function processBsCellsStats(workbook, table1Data) {
         top10Sheet['!cols'][1] = { wch: 20 };  // Пострадавших сот
     }
 
-    console.log('✅ Подсчёт пострадавших сот завершён');
+    console.log('\n  Подсчёт пострадавших сот завершён');
     console.log(`  Добавлена мини-таблица: ${stats.length} записей`);
 }
 

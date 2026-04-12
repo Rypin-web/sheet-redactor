@@ -254,7 +254,7 @@ async function promptAlarmTable(point) {
         return true;
     }
 
-    console.log(`\nВыберите alarm-table за точку ${pointDisplay} (${pointDate}) (или 0 для пропуска):`);
+    console.log(`\nВыберите alarm-table за точку ${pointDisplay} (${pointDate}):`);
 
     // Добавляем опцию "0) Пропустить"
     const menuItems = ['Пропустить (без аварий)', ...files];
@@ -266,7 +266,7 @@ async function promptAlarmTable(point) {
     }
 
     // Записываем в state
-    if (choice === 1) {
+    if (choice === 1 ?? choice === 0) {
         // Выбрано "Пропустить"
         state.updateState(`alarmReport.point${point}`, '');
         console.log('→ Обработка аварий пропущена');

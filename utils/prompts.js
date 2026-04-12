@@ -66,6 +66,7 @@ function waitForEnter() {
     return new Promise((resolve) => {
         rl.question('\nНажмите Enter для выхода...', () => {
             rl.close();
+            process.exit(1)
             resolve();
         });
     });

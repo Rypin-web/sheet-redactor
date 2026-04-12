@@ -136,6 +136,7 @@ function createBsSvodSheet(workbook, alarmReportA, alarmReportB) {
     const bsStats = [];
     let processedCount = 0;
 
+    console.log(' ')
     for (const bsName of uniqueBsList) {
 
         // Найти все соты этой БС в "Исходные данные"
@@ -194,8 +195,8 @@ function createBsSvodSheet(workbook, alarmReportA, alarmReportB) {
     // 9. Добавить лист в workbook
     XLSX.utils.book_append_sheet(workbook, svodSheet, 'Свод по БС');
 
-    console.log('✅ Лист "Свод по БС" создан');
-    console.log(`  Записей: ${bsStats.length}`);
+    console.log('  Лист "Свод по БС" создан');
+    console.log(`  Записей: ${bsStats.length}\n`);
 }
 
 module.exports = {

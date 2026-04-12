@@ -23,7 +23,14 @@ const allScenarios = [
 // Главная функция
 async function main() {
     console.log('=== Sheet Redactor ===\n');
-    console.log('Введите "к" или "r" чтобы вернуться назад')
+    console.log('Как работать:');
+    console.log('1. Положите файлы .xlsx в папку input/');
+    console.log('2. Следуйте инструкциям программы');
+    console.log('3. Результат откроется автоматически в Excel\n');
+    console.log('Навигация:');
+    console.log('  - "r" или "к" — вернуться на один вопрос назад');
+    console.log('  - "0" — пропустить выбор (alarm-table, доп. столбцы)');
+    console.log('  - В главном меню "r" или "к" — выход из программы\n');
     // Запускаем поток выполнения
     await flow.runScenario(scenario1, allScenarios);
 }

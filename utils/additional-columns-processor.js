@@ -141,7 +141,7 @@ function addAdditionalColumnsToSheet(workbook, sheetName, additionalColumns, poi
     // Заменяем лист в workbook
     workbook.Sheets[sheetName] = newSheet;
 
-    console.log(`  ✅ Добавлено столбцов: ${additionalColumns.length}`);
+    console.log(`  Добавлено столбцов: ${additionalColumns.length}`);
 }
 
 /**

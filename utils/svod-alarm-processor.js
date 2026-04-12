@@ -126,7 +126,7 @@ function createSvodAlarmSheet(workbook, alarmReportA, alarmReportB) {
     // Добавляем лист в workbook
     XLSX.utils.book_append_sheet(workbook, svodSheet, 'Свод аварий')
 
-    console.log('✅ Лист "Свод аварий" создан');
+    console.log('\n  Лист "Свод аварий" создан');
     console.log(`  Записей: ${svodData.length}`);
 }
 

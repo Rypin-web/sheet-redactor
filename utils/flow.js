@@ -4,6 +4,7 @@
  */
 
 const state = require('./state');
+const prompts = require('./prompts')
 
 /**
  * Запустить выполнение сценария
@@ -88,9 +89,12 @@ async function runScenario(scenarioSteps, allScenarios = null) {
         // Обновляем текущий шаг в state
         state.setStep(currentStep);
     }
-    
+
     // Сценарий завершён
-    console.log('\n✅ Сценарий выполнен успешно!');
+    console.log('\nСценарий выполнен успешно!');
+
+    // Ждём Enter перед закрытием
+    await prompts.waitForEnter()
 }
 
 /**

@@ -206,7 +206,7 @@ function processAlarmReports(workbook, alarmReportA, alarmReportB) {
         processDualAlarmReports(workbook, 'Ухудшились', data, alarmReportA, alarmReportB);
     }
 
-    console.log('✅ Обработка alarm-отчётов завершена');
+    console.log('\n  Обработка alarm-отчётов завершена');
 }
 
 /**
@@ -402,7 +402,7 @@ function addBsColumnToAllSheets(workbook) {
         workbook.Sheets[sheetName] = newSheet;
     }
 
-    console.log('✅ Столбец "БС" добавлен на все листы');
+    console.log('\n  Столбец "БС" добавлен на все листы');
 }
 
 module.exports = {
