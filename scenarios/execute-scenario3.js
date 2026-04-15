@@ -54,7 +54,7 @@ const scenario3 = [
     () => steps.promptAlarmTable('B'),
 
     // Шаг 10: Выбор дополнительных столбцов
-    () => steps.promptAdditionalColumns(),
+    () => steps.promptAdditionalColumns(['table1']),
 
     // Шаг 11: Выполнение сценария
     executeScenario3
@@ -182,16 +182,15 @@ async function executeScenario3() {
     // 15. Добавляем дополнительные столбцы (если выбраны)
     const additionalColumns = state.getStateField('additionalColumns');
     if (additionalColumns && additionalColumns.length > 0) {
-        // Добавляем на лист "Ухудшились"
+        // Сценарий 3: данные только из table1
         additionalColumnsProcessor.addAdditionalColumnsToSheet(
             workbook, 'Ухудшились', additionalColumns,
-            pointA, pointB
+            pointA, pointB, ['table1']
         );
-        
-        // Добавляем на лист "ТОП-10"
+
         additionalColumnsProcessor.addAdditionalColumnsToSheet(
             workbook, 'ТОП-10', additionalColumns,
-            pointA, pointB
+            pointA, pointB, ['table1']
         );
     }
 

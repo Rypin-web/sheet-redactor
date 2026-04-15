@@ -76,8 +76,9 @@ function extractAllDataFromTable(tableKey) {
  * @param {string[]} additionalColumns - Массив названий столбцов
  * @param {string} pointA - Дата точки А (DD.MM.YY HH:MM)
  * @param {string} pointB - Дата точки Б (DD.MM.YY HH:MM)
+ * @param {string[]} tableKeys - Массив ключей таблиц для поиска (например, ['table1', 'table2'])
  */
-function addAdditionalColumnsToSheet(workbook, sheetName, additionalColumns, pointA, pointB) {
+function addAdditionalColumnsToSheet(workbook, sheetName, additionalColumns, pointA, pointB, tableKeys = ['table1', 'table2']) {
     const sheet = workbook.Sheets[sheetName];
     if (!sheet) {
         console.error(`❌ Лист "${sheetName}" не найден`);
@@ -92,35 +93,30 @@ function addAdditionalColumnsToSheet(workbook, sheetName, additionalColumns, poi
         return;
     }
 
-    // Извлекаем данные из таблиц 1 и 2 со всеми столбцами
-    const table1Data = extractAllDataFromTable('table1');
-    const table2Data = extractAllDataFromTable('table2');
-    
-    // Объединяем данные из обеих таблиц
-    const allTableData = [...table1Data.data, ...table2Data.data];
-
-    // Извлекаем только дату (без времени) для сравнения
-    const getDateOnly = (dateTime) => dateTime.split(' ')[0];
-    const pointADate = getDateOnly(pointA);
-    const pointBDate = getDateOnly(pointB);
+    // Извлекаем данные из указанных таблиц
+    let allTableData = [];
+    for (const tableKey of tableKeys) {
+        const tableData = extractAllDataFromTable(tableKey);
+        allTableData = [...allTableData, ...tableData.data];
+    }
 
     console.log(`  Добавление ${additionalColumns.length} дополнительных столбцов на лист "${sheetName}"...`);
 
     // Для каждой строки добавляем дополнительные столбцы
     for (const row of data) {
         const fullName = row['Название'];
-        
+
         if (!fullName) continue;
 
         // Для каждого дополнительного столбца
         for (const columnName of additionalColumns) {
             // Ищем значения в данных таблиц для точек А и Б
-            const valueA = findValueForColumn(allTableData, fullName, pointA, pointADate, columnName);
-            const valueB = findValueForColumn(allTableData, fullName, pointB, pointBDate, columnName);
+            const valueA = findValueForColumn(allTableData, fullName, pointA, pointA, columnName);
+            const valueB = findValueForColumn(allTableData, fullName, pointB, pointB, columnName);
 
             // Формируем значение в формате: (Дата А) Значение\n(Дата Б) Значение
             const additionalValue = `(${pointA}) ${valueA}\n(${pointB}) ${valueB}`;
-            
+
             // Название столбца: {Заголовок} (доп)
             const columnKey = `${columnName} (доп)`;
             row[columnKey] = additionalValue;

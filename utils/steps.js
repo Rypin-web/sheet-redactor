@@ -282,42 +282,62 @@ async function promptAlarmTable(point) {
 
 /**
  * Шаг: Выбор дополнительных столбцов
- * Показывает общие заголовки из table1 и table2, исключая уже выбранные
+ * Показывает общие заголовки из указанных таблиц, исключая уже выбранные
+ * @param {string[]} tableKeys - Массив ключей таблиц (например, ['table1', 'table2'])
  * @returns {Promise<'back'|true>}
  */
-async function promptAdditionalColumns() {
+async function promptAdditionalColumns(tableKeys = ['table1', 'table2']) {
     const stepNum = state.getStep();
 
-    // Получаем имена файлов
-    const file1 = state.getStateField('table1.file');
-    const file2 = state.getStateField('table2.file');
+    // Получаем имена файлов для указанных таблиц
+    const files = tableKeys.map(key => state.getStateField(`${key}.file`));
 
-    if (!file1 || !file2) {
-        console.log('  Таблицы 1 или 2 не выбраны, пропускаем');
+    // Проверяем, что все файлы выбраны
+    const validFiles = files.filter(f => f);
+    if (validFiles.length === 0) {
+        console.log('  Таблицы не выбраны, пропускаем');
         return true;
     }
 
-    // Читаем обе таблицы
-    const fileData1 = fs.readXLSX(file1);
-    const fileData2 = fs.readXLSX(file2);
+    // Читаем все таблицы
+    const allHeaders = validFiles.map(fileName => fs.readXLSX(fileName).headers);
 
-    const headers1 = fileData1.headers;
-    const headers2 = fileData2.headers;
+    // Если таблица одна — берём все заголовки из неё
+    if (allHeaders.length === 1) {
+        var headers1 = allHeaders[0];
+        var headers2 = null;
+    } else {
+        // Если таблиц несколько — ищем пересечение
+        headers1 = allHeaders[0];
+        headers2 = allHeaders[1];
+    }
 
-    // Получаем уже выбранные заголовки
-    const title1 = state.getStateField('table1.title');
-    const value1_1 = state.getStateField('table1.value1');
-    const value2_1 = state.getStateField('table1.value2');
-    const title2 = state.getStateField('table2.title');
-    const value1_2 = state.getStateField('table2.value1');
-    const value2_2 = state.getStateField('table2.value2');
+    // Получаем уже выбранные заголовки для всех таблиц
+    const excluded = [];
+    for (const key of tableKeys) {
+        const title = state.getStateField(`${key}.title`);
+        const value1 = state.getStateField(`${key}.value1`);
+        const value2 = state.getStateField(`${key}.value2`);
+        if (title) excluded.push(title);
+        if (value1) excluded.push(value1);
+        if (value2) excluded.push(value2);
+    }
 
     // Получаем доступные заголовки для выбора
-    const availableHeaders = additionalColumnsProcessor.getAvailableHeaders(
-        headers1, headers2,
-        title1, value1_1, value2_1,
-        title2, value1_2, value2_2
-    );
+    let availableHeaders;
+    if (headers2) {
+        // Пересечение заголовков двух таблиц
+        // Берём первые 6 исключений (table1: title, value1, value2, table2: title, value1, value2)
+        const excl = [...excluded, '', '', '', '', '', ''].slice(0, 6);
+        availableHeaders = additionalColumnsProcessor.getAvailableHeaders(
+            headers1, headers2,
+            excl[0], excl[1], excl[2],
+            excl[3], excl[4], excl[5]
+        );
+    } else {
+        // Все заголовки из одной таблицы, минус исключённые
+        availableHeaders = additionalColumnsProcessor.filterExcludedHeaders(headers1, excluded);
+    }
 
     if (availableHeaders.length === 0) {
         console.log('  Нет доступных заголовков для выбора, пропускаем');
