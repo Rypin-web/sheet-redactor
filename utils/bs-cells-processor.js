@@ -20,20 +20,24 @@ function extractCellPrefix(cellName) {
 }
 
 /**
- * Считать количество сот с данным префиксом в Таблице 1
+ * Считать количество уникальных сот с данным префиксом в Таблице 1
+ * Учитывает только уникальные названия сот (игнорирует повторения по датам)
  * @param {Array<{date: string, title: string, value: any}>} table1Data - Данные Таблицы 1
  * @param {string} cellPrefix - Префикс соты (например, "MK4123")
- * @returns {number} Количество совпадений
+ * @returns {number} Количество уникальных сот
  */
 function countCellsInTable1(table1Data, cellPrefix) {
     if (!table1Data || !cellPrefix) return 0;
-    
-    // Нестрогое совпадение: title.includes(cellPrefix)
-    const count = table1Data.filter(item => 
-        item.title && item.title.includes(cellPrefix)
-    ).length;
-    
-    return count;
+
+    // Собираем уникальные названия сот с данным префиксом
+    const uniqueCells = new Set();
+    for (const item of table1Data) {
+        if (item.title && item.title.includes(cellPrefix)) {
+            uniqueCells.add(item.title);
+        }
+    }
+
+    return uniqueCells.size;
 }
 
 /**
