@@ -42,7 +42,7 @@ async function displayMenu(items, question) {
     console.log('');
 
     return new Promise((resolve) => {
-        rl.question(question + ' ', (answer) => {
+        rl.question(question + ' -> ', (answer) => {
             rl.close();
             
             // Проверяем на команду возврата
