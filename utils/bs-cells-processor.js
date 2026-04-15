@@ -166,7 +166,8 @@ function processBsCellsStats(workbook, table1Data) {
     const lastRow = 13 + stats.length;
     const additionalColumns = state.getStateField('additionalColumns') || [];
     const baseCols = 8; // A-H (базовые столбцы)
-    const totalCols = baseCols + additionalColumns.length;
+    // Каждый дополнительный столбец теперь даёт 2 столбца (было/стало)
+    const totalCols = baseCols + additionalColumns.length * 2;
     const lastColLetter = String.fromCharCode(65 + totalCols - 1); // 65 = 'A'
     top10Sheet['!ref'] = `A1:${lastColLetter}${lastRow}`;
 

@@ -114,18 +114,22 @@ function addAdditionalColumnsToSheet(workbook, sheetName, additionalColumns, poi
             const valueA = findValueForColumn(allTableData, fullName, pointA, pointA, columnName);
             const valueB = findValueForColumn(allTableData, fullName, pointB, pointB, columnName);
 
-            // Формируем значение в формате: (Дата А) Значение\n(Дата Б) Значение
-            const additionalValue = `(${pointA}) ${valueA}\n(${pointB}) ${valueB}`;
-
-            // Название столбца: {Заголовок} (доп)
-            const columnKey = `${columnName} (доп)`;
-            row[columnKey] = additionalValue;
+            // Два столбца: {Название} было и {Название} стало
+            row[`${columnName} было`] = valueA;
+            row[`${columnName} стало`] = valueB;
         }
     }
 
-    // Обновляем заголовки
-    const originalHeaders = Object.keys(data[0]).filter(h => !h.endsWith(' (доп)'));
-    const newHeaders = [...originalHeaders, ...additionalColumns.map(c => `${c} (доп)`)];
+    // Обновляем заголовки: убираем старые дополнительные столбцы
+    const originalHeaders = Object.keys(data[0])
+        .filter(h => !h.endsWith(' (доп)') && !h.endsWith(' было') && !h.endsWith(' стало'));
+
+    // Добавляем новые столбцы: для каждого доп. столбца — "было" и "стало"
+    const newHeaders = [...originalHeaders];
+    for (const columnName of additionalColumns) {
+        newHeaders.push(`${columnName} было`);
+        newHeaders.push(`${columnName} стало`);
+    }
 
     // Пересоздаём лист
     const newSheet = XLSX.utils.json_to_sheet(data, { header: newHeaders });
@@ -137,7 +141,7 @@ function addAdditionalColumnsToSheet(workbook, sheetName, additionalColumns, poi
     // Заменяем лист в workbook
     workbook.Sheets[sheetName] = newSheet;
 
-    console.log(`  Добавлено столбцов: ${additionalColumns.length}`);
+    console.log(`  Добавлено столбцов: ${additionalColumns.length * 2} (${additionalColumns.length} × было/стало)`);
 }
 
 /**
