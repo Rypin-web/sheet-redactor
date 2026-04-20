@@ -85,7 +85,7 @@ function createSvodAlarmSheet(workbook, alarmReportA, alarmReportB) {
     const svodData = [];
 
     for (const alarmName of allAlarmNames) {
-    
+
         const bylo = countA.get(alarmName) || 0;
         const stalo = countB.get(alarmName) || 0;
         const raznica = stalo - bylo;
@@ -111,6 +111,7 @@ function createSvodAlarmSheet(workbook, alarmReportA, alarmReportB) {
 
     // Сортировка по убыванию "Ухудшились в %"
     svodData.sort((a, b) => b['Ухудшились в %'] - a['Ухудшились в %']);
+    svodData.forEach((el) => el['Ухудшились в %'] = (el['Ухудшились в %'] * 100).toFixed(2) + ' %')
 
     // Создаём лист "Свод аварий"
     const svodSheet = XLSX.utils.json_to_sheet(svodData);
